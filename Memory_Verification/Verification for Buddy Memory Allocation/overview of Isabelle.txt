@@ -1,0 +1,179 @@
+\subsection{The Notations}
+\label{notations}
+Creating a theory is the beginning of the usage of Isabelle/HOL. Basically, a theory is a collection of types, functions and theorems. The general format of a theory \textsl{T} is like this:
+
+\phantom{x} \textbf{theory} \textsl{T} \\
+\phantom{x} \hspace{3pt} \textbf{imports} $B_1 \dots B_n$ \\
+\phantom{x} \hspace{3pt} \textbf{begin} \\
+\phantom{x} \hspace{13pt} \textsl{declarations}, \textsl{definitions}, \textsl{and proofs} \\
+\phantom{x} \hspace{3pt} \textbf{end} \\
+
+Notation \textsl{T} is the name of the theory. Attention!!! the notation \textsl{T} must be same as the name of whole proof file. $B_1 \dots B_n$ are the existing theories and they are called father theories of theory \textsl{T}. Their declarations, definitions and theorems which are proved can be directly quoted by theory \textsl{T}. Among a theory, the types, terms and formulae of HOL are the smallest units which should be familiar with at the very beginning.
+
+\subsubsection{The Types}
+\label{types} Even though HOL is a kind of logical language, its type system resembles that of general programming languages. Type \textsl{bool} and type \textsl{nat} are two basic types which are frequently used. They respectively represent the types of truth values and the types of natural members. Two structures which are widely used in general programming languages such as \textsl{JAVA}, \textsl{list} and \textsl{set}, are used as constructors to create a collection of same type. For example, (\textsl{bool}) \textsl{list} is the type of lists whose elements are truth values and (\textsl{nat}) \textsl{set} is the type of sets whose elements are natural numbers. In fact, \textsl{list} and \textsl{set} act as two basic theories, which means the correctness and some properties like security of the operators on them are strictly proved. In other words, theory \textsl{list} and theory \textsl{set} are the father theories of other theories.
+
+HOL offers tuples to compose different types to construct a new type: (\textsl{$t_1$} $\times$ \textsl{$t_2$}). The first element of this tuple has the type of $t_1$ and the second element has the type of $t_2$. Records are another form of tuples and are familiar from general programming languages. Compared to tuples, records' components has their own names which makes them easier to read and visit than tuples.
+
+In addition, HOL offers function types denoted by $\Rightarrow$. As a higher-kind type, it depends on the types of input parameters and the types of output parameters. For example, '\textsl{a} $\Rightarrow$ '\textsl{b} $\Rightarrow$ '\textsl{c} is the function type which takes an element of type '\textsl{a} and an element of type '\textsl{b} as input, and returns an element of type '\textsl{c} as output. It should be noted that '\textsl{a}, '\textsl{b} etc. are the type variables which give rise to polymorphic types like '\textsl{a} $\Rightarrow$ '\textsl{b}, the type of the identity function.
+
+\subsubsection{The Terms}
+\label{terms} The inputs and outputs of a function are all seen as terms. The definition of a function indicates that its type is a kind of function type. Applying the function to input terms will result in output terms. For example, \textsl{f} is a function which has the type of \textsl{$t_1$} $\Rightarrow$ \textsl{$t_2$} and \textsl{t} is a term of type \textsl{$t_1$}, then \textsl{f t} is a term of type \textsl{$t_2$}.
+
+Infix functions like + and some basic function expressions like conditional expressions (\textsl{if b then $t_1$ else $t_2$}), switch expressions (\textsl{case e of $c_1$ $\Rightarrow$ $e_1$} / \dots / \textsl{$c_n$ $\Rightarrow$ $e_n$}) and assignment expressions (\textsl{let x} = \textsl{t in u}) are all seen as terms in HOL. Furthermore, $\lambda$-abstractions are also contained in terms.
+
+\subsubsection{The Formulae}
+\label{formulae} Combining the terms of type \textsl{bool} by logical connectives results the formulae. True and False are two basic constants because of the \textsl{bool} type of all terms in formula and the logic algorithms. Basic logical connectives such as $\neg$, $\wedge$, $\vee$ and $\longrightarrow$ (except the $\neg$) are associated to the right: (\textsl{a} $\wedge$ (\textsl{b} $\wedge$ \textsl{c})), (\textsl{a} $\vee$ (\textsl{b} $\vee$ \textsl{c})), (\textsl{a} $\longrightarrow$ (\textsl{b} $\longrightarrow$ \textsl{c})). Of course, quantifiers are also included and are represented as $\forall$\textsl{x}. \textsl{P} and $\exists$\textsl{x}. \textsl{P}. In addition, there is $\exists$!\textsl{x}. \textsl{P} which means there exists exactly one \textsl{x} that satisfies \textsl{P}.
+
+Formulae are usually used in the definition of lemmas or theorems like this. It will not explain how to prove these lemmas here.
+
+\phantom{x} \textbf{lemma} axiom1: "\textsl{R} $\longrightarrow$ (\textsl{Q} $\longrightarrow$ \textsl{R})" \\
+\phantom{x} \hspace{3pt} \textbf{lemma} axiom4: "($\forall$\textsl{x}. \textsl{Q}(\textsl{x})) $\longrightarrow$ \textsl{Q}(\textsl{y})" \\
+
+In formulae, variables are needed to pay attention. Except free variables and bound variables, HOL offers another kind of variable which is called a schematic variable or unknown. This kind of variable have a ? as its first character. Generally speaking, an unknown is a free variable and it automatically generates and replaces the variable in a lemma or a theorem which is proved. For example, once the axiom1 above is proved, the lemma will turn into a theorem which is represented as this:
+
+\phantom{x} \textbf{theorem} "?\textsl{r} $\longrightarrow$ (?\textsl{q} $\longrightarrow$ ?\textsl{r})" \\
+
+In fact, the unknown means that the theorem prover can instantiate it arbitrary.
+
+\subsection{Functional Programming in Isabelle/HOL}
+\label{func}
+As is customary, a functional programming is made up of datatypes and functions. The definitions of datatypes make use of \textsl{types} and \textsl{terms} mentioned above as well as the operators between data structures. Functions includes generally defined functions denoted by \textsl{definition} and recursion functions denoted by \textsl{fun}, \textsl{func} and \textsl{primrec}.
+
+\subsubsection{The Datatypes}
+\label{datatypes} Datatypes consist of signs and types. Here is an example of datatype definition. The example below introduces a type named \textsl{block\_state\_type}, two signs \textsl{FREE} and \textsl{ALLOC} both belong to this type. In other words, \textsl{FREE} and \textsl{ALLOC} are two values to this type. 
+
+\phantom{x} \textbf{datatype} \textsl{block\_state\_type} = \textsl{FREE} $\mid$ \textsl{ALLOC} \\
+
+A more complex datatype definition looks like this. This example introduce a tree of type '\textsl{a}. It employs a recursion way to define the tree which means the definition is split into the definition of \textsl{Leaf} and the definition of \textsl{Node}. The \textsl{Leaf} is the end of some subtree and stores the information of type '\textsl{a}. \textsl{Node} is divided into four subtrees: \textsl{LL}, \textsl{LR}, \textsl{RL} and \textsl{RR}. Each subtree is defined in recursion way owning the datatype of '\textsl{a tree}.
+
+\phantom{x} \textbf{datatype} '\textsl{a tree} = \textsl{Leaf} '\textsl{a} \\
+\phantom{x} \hspace{3pt} $\mid$ \textsl{Node} (\textsl{LL}: "'\textsl{a tree}") (\textsl{LR}: "'\textsl{a tree}") (\textsl{RL}: "'\textsl{a tree}") (\textsl{RR}: "'\textsl{a tree}") \\
+
+In addition, we can use the keyword \textsl{type\_synonym} to assign one existing type or one basic type to the certain type which we established, and use the keyword \textsl{typedecl} to create a new type which is not to be detailedly defined. Here are two examples.
+
+\phantom{x} \textbf{type\_synonym} \textsl{ID} = "\textsl{nat}" \\
+\phantom{x} \hspace{3pt} \textbf{type\_synonym} \textsl{Block} = "(\textsl{nat $\times$ block\_state\_type $\times$ ID}) \textsl{tree}" \\
+
+This example firstly introduces a type \textsl{ID} that owns the basic type \textsl{nat}. Then it creates a new type \textsl{Block} which owns the type '\textsl{a tree} where '\textsl{a} is specified to a certain type \textsl{nat $\times$ block\_state\_type $\times$ ID}. The type \textsl{Buffer} represents its structure is a quad-tree and each \textsl{Leaf} element is the type of (\textsl{nat $\times$ block\_state\_type $\times$ ID}). The type \textsl{Block} can be used as existing type in terms later.
+
+\phantom{x} \textbf{typedecl} \textsl{Thread} \\
+
+This instance only creates a new type of \textsl{Thread}. However we do not care about the detailed information of type \textsl{Thread},for example, which segments it contains and what they are.
+
+\subsubsection{The Functions}
+\label{functions} Then we can define a function \textsl{is\_leaf} on datatype \textsl{Block} and type \textsl{bool} to judge whether the input tree is a \textsl{Leaf} or \textsl{Node}.
+
+\phantom{x} \textbf{primrec} \textsl{is\_leaf} :: "\textsl{Block} $\Rightarrow$ \textsl{bool}" \textsl{where} \\
+\phantom{x} \hspace{3pt} "\textsl{is\_leaf} (\textsl{Leaf a}) = \textsl{True}" $\mid$ \\
+\phantom{x} \hspace{3pt} "\textsl{is\_leaf} (\textsl{Node LL LR RL RR}) = \textsl{False}" \\
+
+The keyword \textsl{primrec} means primitive recursion and therefore indicates that the recursion is of a particularly primitive kind where each recursive call peels off a datatype constructor from one of the arguments. Thus primitive recursion promises the termination which also means the function is total. Here we have to highlight that the termination requirement is absolutely essential in HOL, a logic of total functions. In the process of modeling the buddy memory management system, it is necessary for us to ensure the termination of each function we established. A general primitive recursion is like this:
+\begin{equation}
+\textbf{primrec}\ name\ ::\ type\ (optional\ syntax)\ where\ equations
+\end{equation}
+
+The equations must be separated by $\mid$, and each segment is used to describe the operation to certain datatype. Other recursion functions starts from the keywords \textsl{fun} and \textsl{func}.
+
+In addition to the recursions like primitive recursion, there are common functions whose declaration starts from the keyword \textsl{definition}. Unlike the fact that the termination of some recursions can be automatically proved, the termination of common functions has to be proved manually. As a matter of fact, the proof of this can be easy as long as we grasp the variables that increase or decrease. Detailed instructions will be given in the latter modeling process. A common function is like this:
+\begin{equation}
+\textbf{definition}\ name\ ::\ type\ (optional\ syntax)\ where\ equations
+\end{equation}
+
+The above content explains functional programming and how to write a theorem and conduct proof on it. More complex functions of buddy memory management system will be given in section 3, theorems or lemmas about functional correctness and security properties will be introduced in section 4 and 5, however we omit detailed proof ideals and processes due to their complexity and space limitation.
+
+\subsection{The Rules of the Reasoning}
+\label{rules}
+This section outlines the concepts and techniques which underline reasoning in Isabelle. Isabelle is a prover of backward, that means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. Once we write down the theorem, Isabelle will print the initial proof state consisting of several subgoals followed by the content of main goal like this:
+
+\phantom{x} \textbf{goal} (\textsl{n subgoals}) \\
+\phantom{x} \hspace{3pt} \textsl{1}. \textsl{Subgoal\_1} \\
+\phantom{x} \hspace{12pt} \vdots \\
+\phantom{x} \hspace{3pt} \textsl{n}. \textsl{Subgoal\_n}
+
+\subsubsection{Natural Deduction}
+\label{dc} In fact, modus ponens is the most familiar inference rule which is used to construct proofs. The rule says that we can infer \textsl{Q} from \textsl{P} $\longrightarrow$ \textsl{Q} and \textsl{P}.
+\begin{displaymath}
+\frac{P \longrightarrow Q\ \ \ P}{Q}
+\end{displaymath}
+
+Natural deduction is a way of trying to provide a formal model of logical reasoning like "natural" occurrence in proof theory. There are two kinds of rules for each logical symbol ($\wedge$, $\vee$): introduction rule (to infer conjunctions) and elimination rule (to deduce consequences from this symbol). Natural deduction is easy to use: each proof step consists of identifying the symbol of a formula and applying the corresponding rule, then it creates new subgoals in an obvious way from parts of the chosen formula. The most efficiency of natural deduction is that it lends to automatic reasoning: Isabelle accepts any suitable collection of natural deduction rules and uses them to search for proofs automatically.
+
+Introduction rule allows you to infer a formula. Take conjunction introduction rule as an example, it allows you to infer \textsl{P} $\wedge$ \textsl{Q} if you have \textsl{P} and \textsl{Q}. In Isabelle strategy \textsl{conjI} represents this rule and it looks like this:
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P}; ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P} $\wedge$ ?\textsl{Q}\ \ \ \ \ (\textsl{conjI}) \\
+
+Due to the way of reasoning backwards in Isabelle, the proof step will make the conjunction symbol disappear and print two subgoals once we apply this rule. \\
+
+Of course, there are also two disjunction introduction rules. The corresponding reasoning strategies are \textsl{disjI1} and \textsl{disjI2}.
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P} $\vee$ ?\textsl{Q}\ \ \ \ \ (\textsl{disjI1}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P} $\vee$ ?\textsl{Q}\ \ \ \ \ (\textsl{disjI2}) \\
+
+Elimination rule allows you to deduce a part from the whole formula. The conjunction elimination rules are easy to use which are expressed as \textsl{conjunct1} and \textsl{conjunct2}.
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P} $\wedge$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P}\ \ \ \ \ (\textsl{conjunct1}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$?\textsl{P} $\wedge$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{Q}\ \ \ \ \ (\textsl{conjunct2}) \\
+
+However, the situation of disjunction elimination rule is rather different. From \textsl{P} $\vee$ \textsl{Q} we can not conclude that \textsl{P} is true and we also can not conclude that \textsl{Q} is true. Only one way can we use disjunction elimination rule: if we want to prove something else like \textsl{R} and we have \textsl{P} $\vee$ \textsl{Q} holds, we can assume that \textsl{P} is true and prove \textsl{R}, then assume that \textsl{Q} is true and prove \textsl{R}. Here we have to use the strategy \textsl{assumption} after strategy \textsl{disjE} and we have to prove \textsl{R} twice under different assumptions. The notion of disjunction elimination rule in Isabelle looks like this:
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P} $\vee$ ?\textsl{Q};\ ?\textsl{P} $\Longrightarrow$ ?\textsl{R};\ ?\textsl{Q} $\Longrightarrow$ ?\textsl{R}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{R}\ \ \ \ \ (\textsl{disjE})
+
+\subsubsection{Destruction}
+\label{destructions}
+Destruction rules are the rules where the conclusion is a sub-formula of a premise and they take apart and destroy a premise. Take the conjunction elimination rules as an example. If you now have two subgoals like this:
+
+\phantom{x} 1. \textsl{P} $\wedge$ \textsl{Q} $\Longrightarrow$ \textsl{Q} \\
+\phantom{x} \hspace{3pt} 2. \textsl{P} $\wedge$ \textsl{Q} $\Longrightarrow$ \textsl{P} \\
+
+Then we apply a new method, \textsl{drule} which stands for destruction rule to invoke the conjunction elimination rule.
+
+\phantom{x} \textbf{apply} \textsl{(drule conjunct2)} \\
+
+Then the first subgoal will be simplified.
+
+\phantom{x} 1. \textsl{Q} $\Longrightarrow$ \textsl{Q} \\
+\phantom{x} \hspace{3pt} 2. \textsl{P} $\wedge$ \textsl{Q} $\Longrightarrow$ \textsl{P} \\
+
+Next we apply strategy \textsl{assumption} to completely finished the first subgoal. The remaining proof process is omitted.
+
+\subsubsection{Implication}
+\label{implicaiton} Implication rule in Isabelle is different what we learn about the implication. It is a introduction rule in fact, and we apply strategy \textsl{impI} to replace the implication symbol ($\longrightarrow$) in conclusion as deduction symbol ($\Longrightarrow$) in the new subgoal:
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P} $\Longrightarrow$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P} $\longrightarrow$ ?\textsl{Q}\ \ \ \ \ (\textsl{impI}) \\
+
+The implication which we are familiar with is actually the \textsl{modus ponens} at the start of this section. Its notion looks like this and we apply \textsl{mp} to invoke it:
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P} $\longrightarrow$ ?\textsl{Q};\ ?\textsl{P}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{Q}\ \ \ \ \ (\textsl{mp}) \\
+
+We can both call the symbols $\Longrightarrow$ and $\longrightarrow$ implication, but there are many different respects between them. Isabelle uses $\Longrightarrow$ to express inference rules and we usually use it to separate a theorem's preconditions from its conclusion. On the other hand, $\longrightarrow$ is just one of the many connectives available in higher-order logic.
+
+\subsubsection{Negation}
+\label{negation} Negation introduction \textsl{(notI)} deduces $\neg$\textsl{P} if assuming \textsl{P} leads to a contradiction. Negation elimination \textsl{(notE)} deduces any formula in the presence of $\neg$\textsl{P} together with \textsl{P}:
+
+\phantom{x} $\lbrack$$\vert$?\textsl{P} $\Longrightarrow$ \textsl{False}$\vert$$\rbrack$ $\Longrightarrow$ $\neg$ ?\textsl{P}\ \ \ \ \ (\textsl{notI}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$ $\neg$ ?\textsl{P};\ ?\textsl{P}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{R}\ \ \ \ \ (\textsl{notE}) \\
+
+Also we have classical logic \textsl{(classical)} which allows us to assume $\neg$\textsl{P} when attempting to prove \textsl{P}:
+
+\phantom{x} $\lbrack$$\vert$ $\neg$ ?\textsl{P} $\Longrightarrow$ ?\textsl{P}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P}\ \ \ \ \ (\textsl{classical}) \\
+
+Furthermore, four rules support reasoning about contrapositive. They are \textsl{contrapos\_pp}, \textsl{contrapos\_pn}, \textsl{contrapos\_np}, \textsl{contrapos\_nn}.
+
+\phantom{x} $\lbrack$$\vert$?\textsl{Q};\ $\neg$ ?\textsl{P} $\Longrightarrow$ $\neg$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P}\ \ \ \ \ (\textsl{contrapos\_pp}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$?\textsl{Q};\ ?\textsl{P} $\Longrightarrow$ $\neg$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ $\neg$ ?\textsl{P}\ \ \ \ \ (\textsl{contrapos\_pn}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$$\neg$ ?\textsl{Q};\ $\neg$ ?\textsl{P} $\Longrightarrow$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{P}\ \ \ \ \ (\textsl{contrapos\_np}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$$\neg$ ?\textsl{Q};\ ?\textsl{P} $\Longrightarrow$ ?\textsl{Q}$\vert$$\rbrack$ $\Longrightarrow$ $\neg$ ?\textsl{P}\ \ \ \ \ (\textsl{contrapos\_nn})
+
+\subsubsection{Quantifiers}
+\label{quantifiers} Quantifiers consist of universal quantifier and existential quantifier. They both have introduction rules, \textsl{allI, exI} and elimination rules, \textsl{allE, exE}. The quantifiers' introduction rules look like this:
+
+\phantom{x} $\lbrack$$\vert$ $\bigwedge$\textsl{x}. ?\textsl{P x}$\vert$$\rbrack$ $\Longrightarrow$ $\forall$\textsl{x}. ?\textsl{P x}\textsl{P}\ \ \ \ \ (\textsl{allI}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$ ?\textsl{P} ?\textsl{x}$\vert$$\rbrack$ $\Longrightarrow$ $\exists$\textsl{x}. ?\textsl{P x}\textsl{P}\ \ \ \ \ (\textsl{exI}) \\
+
+The quantifiers' elimination rules look like this:
+
+\phantom{x} $\lbrack$$\vert$ $\forall$\textsl{x}. ?\textsl{P x};\ ?\textsl{P} ?\textsl{x} $\Longrightarrow$ ?\textsl{R}$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{R}\textsl{P}\ \ \ \ \ (\textsl{allE}) \\
+\phantom{x} \hspace{3pt} $\lbrack$$\vert$ $\exists$\textsl{x}. ?\textsl{P x};\ $\bigwedge$\textsl{x}. ?\textsl{P x} $\Longrightarrow$ ?Q$\vert$$\rbrack$ $\Longrightarrow$ ?\textsl{Q}\textsl{P}\ \ \ \ \ (\textsl{exE}) \\
+
+Other frequently used reasoning strategies such as \textsl{blast}, \textsl{clarify}, \textsl{simp}, \textsl{force}, \textsl{fast}, etc. are equally important in a proof. Detailed information of these useful reasoning methods can be approached in the manual of Isabelle/HOL.
