@@ -1,219 +1,536 @@
 theory Memory_Allocation_Security
-imports Memory_Allocation_Model Memory_Allocation_Invariant
+imports Memory_Allocation_Model Memory_Allocation_Invariant SK_SecurityModel
 begin
 
-subsection \<open>def of Memory Execution Model\<close>
+subsection \<open>Memory Execution Model\<close>
 
-typedecl Thread
-datatype thread_state_type = READY | RUNNING | BLOCKED
-datatype timeout_state_type = WAIT | NO_WAIT
+type_synonym partition_id = nat
+type_synonym partition_name = string
+datatype Partition_Conf = PartConf partition_id partition_name
+type_synonym Partitions = "partition_id \<rightharpoonup> Partition_Conf"
 
-record State = t_state :: "Thread \<Rightarrow> thread_state_type"
-               pools :: "Pool set"
-               waitq :: "Thread \<rightharpoonup> poolname"
-               cur :: "Thread option"
-               idset :: "ID set"
+type_synonym domain_id = nat
+type_synonym Mem_Add = "ID set"
+type_synonym Partition_Mem = "partition_id \<rightharpoonup> Mem_Add"
 
-definition schedule :: "State \<Rightarrow> State"
-  where "schedule s \<equiv>
-          let t = cur s;
-              news = (case t of None \<Rightarrow> s
-                              | Some th \<Rightarrow> s\<lparr>t_state := (t_state s)(th := READY)\<rparr>);
-              readyset = {t. (t_state news t) = READY} in
-          if readyset = {} then s
-          else let newcur = SOME p. p \<in> readyset in
-               news\<lparr>t_state := (t_state news)(newcur := RUNNING),cur := Some newcur\<rparr>"
+record Sys_Config = partconf :: Partitions
+                    scheduler :: domain_id
 
-definition k_mem_pool_alloc :: "State \<Rightarrow> Pool \<Rightarrow> nat \<Rightarrow> timeout_state_type \<Rightarrow> (State \<times> bool)"
-  where "k_mem_pool_alloc s po lv ti \<equiv>
-           let ts = t_state s;
-               ps = pools s - {po};
-               wq = waitq s;
-               cu = cur s;
-               ids = idset s;
-               rpi = alloc (zerolevelblocks po) lv ids;
-               newpo = po\<lparr>zerolevelblocks := fst rpi\<rparr> in
-           if snd (snd rpi) = True then
-             (s\<lparr>pools := ps \<union> {newpo},
-               idset := fst (snd rpi)\<rparr>, True)
-           else if snd (snd rpi) = False \<and> ti = WAIT then
-              let t = (case cu of None \<Rightarrow> s
-                                | Some th \<Rightarrow> s\<lparr>t_state := ts(th := BLOCKED),
-                                              waitq := wq(th := Some (pname po)),
-                                              cur := None\<rparr>) in
-              (schedule t, False)
-           else
-             (s, False)"
+record State = current :: domain_id 
+               partitionmem :: Partition_Mem
+               mempools :: "Pool set"
+               memids :: "ID set"
 
-definition k_mem_pool_free :: "State \<Rightarrow> Pool \<Rightarrow> Block \<Rightarrow> (State \<times> bool)"
-  where "k_mem_pool_free s po b \<equiv> 
-          let ts = t_state s;
-              ps = pools s - {po};
-              wq = waitq s;
-              ids = idset s;
-              npi = free (zerolevelblocks po) b ids;
-              newpo = po\<lparr>zerolevelblocks := fst npi\<rparr> in
-           if snd (snd npi) = True then
-             let wqth = {t. wq t = Some (pname po)} in
-             if wqth \<noteq> {} then
-               (s\<lparr>t_state := (\<lambda>t. (if (t \<in> wqth) then READY else (ts t))),
-                  pools := ps \<union> {newpo},
-                  waitq := (\<lambda>t. (if (t \<in> wqth) then None else (wq t))),
-                  idset := fst (snd npi)\<rparr>, True)
-             else
-               (s\<lparr>pools := ps \<union> {newpo},
-                  idset := fst (snd npi)\<rparr>, True)
-           else
-             (s, False)"
+datatype Hypercall = Buddy_Memory_Alloc Pool nat |
+                     Buddy_Memory_Free Pool Block
+datatype System_Event = Schedule
+datatype Event = hyperc Hypercall | sys System_Event
 
-subsection \<open>def and proof of inv_cur_state and inv_waitq_state\<close>
+primrec get_partname_by_type :: "Partition_Conf \<Rightarrow> partition_name"
+  where "get_partname_by_type (PartConf _ pn) = pn"
+                                                                           
+primrec get_partid_by_type :: "Partition_Conf \<Rightarrow> partition_id"
+  where "get_partid_by_type (PartConf pid _) = pid"
 
-definition "inv_cur_waitq \<equiv> {s::State. (\<forall>t. cur s = Some t \<longrightarrow> t_state s t = RUNNING) \<and> (\<forall>th. waitq s th \<noteq> None \<longrightarrow> t_state s th = BLOCKED)}"
+definition is_a_partition :: "Sys_Config \<Rightarrow> domain_id \<Rightarrow> bool"
+  where "is_a_partition sc nid \<equiv> (partconf sc) nid \<noteq> None"
 
-lemma inv_cur_waitq_schedule: "s \<in> inv_cur_waitq \<Longrightarrow> schedule s \<in> inv_cur_waitq"
-proof (cases "{t. t_state (case (cur s) of None \<Rightarrow> s | Some th \<Rightarrow> s\<lparr>t_state := (t_state s)(th := READY)\<rparr>) t = READY} = {}")
-  case True
-  assume a0: "s \<in> inv_cur_waitq"
-  have p0: "schedule s = s" unfolding schedule_def Let_def
-    by (simp add: True)
-  have p1: "schedule s \<in> inv_cur_waitq"
-    by (simp add: a0 p0)
-  then show ?thesis by simp 
-next
-  case False
-  assume a1: "s \<in> inv_cur_waitq"
-  hence p2: "\<forall>t. cur s = Some t \<longrightarrow> t_state s t = RUNNING"
-    and p3: "\<forall>th. waitq s th \<noteq> None \<longrightarrow> t_state s th = BLOCKED"
-    apply (simp add: inv_cur_waitq_def)
-    using \<open>s \<in> inv_cur_waitq\<close> inv_cur_waitq_def by auto
-  let ?t ="schedule s"
+definition is_a_scheduler :: "Sys_Config \<Rightarrow> domain_id \<Rightarrow> bool"
+  where "is_a_scheduler sc nid \<equiv> (scheduler sc) = nid"
+
+definition get_partconf_byid :: "Sys_Config \<Rightarrow> partition_id \<Rightarrow> Partition_Conf option"
+  where "get_partconf_byid sc pid \<equiv> (partconf sc) pid"
+
+definition get_partmem_byid :: "State \<Rightarrow> partition_id \<Rightarrow> Mem_Add option"
+  where "get_partmem_byid s pid \<equiv> (partitionmem s) pid"
+
+definition alloc_memory :: "Sys_Config \<Rightarrow> State \<Rightarrow> Pool \<Rightarrow> nat \<Rightarrow> State"
+  where "alloc_memory sc s po lv \<equiv>
+           (if get_partconf_byid sc (current s) \<noteq> None then
+               (let partmem = get_partmem_byid s (current s);
+                    re = alloc (zerolevelblocks po) lv (memids s) in
+                    (if fst (snd (snd re)) = True then
+                        s\<lparr>partitionmem := (partitionmem s)(current s := Some (the partmem \<union> (snd (snd (snd re))))),
+                          mempools := (mempools s - {po}) \<union> {po\<lparr>zerolevelblocks := fst re\<rparr>},
+                          memids := fst (snd re)\<rparr>
+                     else s))
+            else s)"
+
+definition free_memory :: "Sys_Config \<Rightarrow> State \<Rightarrow> Pool \<Rightarrow> Block \<Rightarrow> State"
+  where "free_memory sc s po b \<equiv>
+           let partmem = get_partmem_byid s (current s) in
+             (if get_partconf_byid sc (current s) \<noteq> None \<and> partmem \<noteq> None \<and> snd (L b) \<in> the partmem then
+                 (let re = free (zerolevelblocks po) b (memids s) in
+                      (if snd (snd re) = True then
+                          s\<lparr>partitionmem := (partitionmem s)(current s := Some (the partmem - {snd (L b)})),
+                            mempools := (mempools s - {po}) \<union> {po\<lparr>zerolevelblocks := fst re\<rparr>},
+                            memids := fst (snd re)\<rparr>
+                       else s))
+              else s)"
+
+definition schedule :: "Sys_Config \<Rightarrow> State \<Rightarrow> State set" where
+  "schedule sc s \<equiv> {s\<lparr>current:= SOME p. p\<in>{x. (partconf sc) x \<noteq> None}\<rparr>}"
+
+definition sys_config_witness :: Sys_Config 
+  where "sys_config_witness \<equiv> \<lparr>partconf = Map.empty,
+                               scheduler = 0\<rparr>"
+
+consts sysconf :: "Sys_Config"
+specification(sysconf)
+  part_id_conf: "\<forall>p. (partconf sysconf) p \<noteq> None \<longrightarrow> get_partid_by_type (the ((partconf sysconf) p)) = p"
+  part_not_sch: "(partconf sysconf) x \<noteq> None \<longrightarrow> x \<noteq> scheduler sysconf"
+  sch_not_part: "scheduler sysconf = x \<longrightarrow> (partconf sysconf) x = None"
+  by (metis Sys_Config.select_convs(1) sys_config_witness_def)
+
+definition state_witness :: State
+  where "state_witness \<equiv> \<lparr>current = (SOME x. (partconf sysconf) x \<noteq> None),
+                          partitionmem = (\<lambda> p. (case ((partconf sysconf) p) of None \<Rightarrow> None
+                                                                             | Some (PartConf _ _) \<Rightarrow> Some {})),
+                          mempools = {},
+                          memids = {}\<rparr>"
+
+consts s0t :: State
+specification(s0t)
+  current_part: "(partconf sysconf) (current s0t) \<noteq> None"
+  part_mem_diff: "\<forall>p1 p2. p1 \<noteq> p2 \<and> get_partconf_byid sysconf p1 \<noteq> None \<and> get_partconf_byid sysconf p2 \<noteq> None \<and>
+                          get_partmem_byid s0t p1 \<noteq> None \<and> get_partmem_byid s0t p2 \<noteq> None \<longrightarrow>
+                          the (get_partmem_byid s0t p1) \<inter> the (get_partmem_byid s0t p2) = {}"
+  mem_name_diff: "\<forall>m1 m2. m1 \<noteq> m2 \<and> m1 \<in> mempools s0t \<and> m1 \<in> mempools s0t \<longrightarrow>
+                          pname m1 \<noteq> pname m2"
+  mem_ids_diff: "\<forall>m. m \<in> mempools s0t \<longrightarrow> diff_ids_valid (zerolevelblocks m)"
+  sorry
+
+primrec event_enabled :: "State \<Rightarrow> Event \<Rightarrow> bool"
+  where "event_enabled s (hyperc h) = (is_a_partition sysconf (current s))" |
+        "event_enabled s (sys h) =  (case h of Schedule \<Rightarrow> True)" 
+
+definition exec_event :: "Event \<Rightarrow> (State \<times> State) set"
+  where "exec_event e = {(s, s'). s' \<in> (if event_enabled s e then
+                                           (case e of hyperc (Buddy_Memory_Alloc po lv) \<Rightarrow> {(alloc_memory sysconf s po lv)} |
+                                                      hyperc (Buddy_Memory_Free po b) \<Rightarrow> {(free_memory sysconf s po b)} |
+                                                      sys Schedule \<Rightarrow> schedule sysconf s)
+                                        else {s})}"
+
+primrec domain_of_event :: "State \<Rightarrow> Event \<Rightarrow> domain_id option"
+where "domain_of_event s (hyperc h) = Some (current s)" |
+      "domain_of_event s (sys h) = Some (scheduler sysconf)"
+
+definition interference1 :: "domain_id \<Rightarrow> domain_id \<Rightarrow> bool" ("(_ \<leadsto> _)")
+  where "interference1 d1 d2 \<equiv>
+            if d1 = d2 then True
+            else if is_a_scheduler sysconf d1 then True
+            else False"
+
+definition non_interference1 :: "domain_id \<Rightarrow> domain_id \<Rightarrow> bool" ("(_ \<setminus>\<leadsto> _)")
+      where "(u \<setminus>\<leadsto>  v) \<equiv> \<not> (u \<leadsto> v)"
+
+declare non_interference1_def [cong] and interference1_def [cong] and domain_of_event_def[cong] and
+       event_enabled_def[cong] and is_a_partition_def[cong] and is_a_scheduler_def[cong]
+
+lemma nintf_neq: "u \<setminus>\<leadsto>  v \<Longrightarrow> u \<noteq> v"  by auto
+
+lemma nintf_reflx: "interference1 u u" by auto
+
+definition vpeq_part :: "State \<Rightarrow> partition_id \<Rightarrow> State \<Rightarrow> bool"
+  where "vpeq_part s d t \<equiv> (\<exists>x. x \<in> the ((partitionmem s) d) \<and> x \<in> the ((partitionmem t) d))"
+
+definition vpeq_sched :: "State \<Rightarrow> domain_id \<Rightarrow> State \<Rightarrow> bool"
+  where "vpeq_sched s d t \<equiv> current s = current t"
+
+definition vpeq1  :: "State \<Rightarrow> domain_id \<Rightarrow> State \<Rightarrow> bool" ("(_ \<sim> _ \<sim> _)") 
+  where "vpeq1 s d t \<equiv>  
+         (if d = scheduler sysconf then 
+            (vpeq_sched s d t)
+          else if is_a_partition sysconf d then 
+            (vpeq_part s d t)
+          else True)"
+
+declare vpeq_part_def [cong] and vpeq_sched_def[cong] and vpeq1_def[cong] 
+
+lemma vpeq_part_transitive_lemma : "\<forall> s t r d. vpeq_part s d t \<and> vpeq_part t d r \<longrightarrow> vpeq_part s d r"
+  by auto
+
+lemma vpeq_part_symmetric_lemma:"\<forall> s t d. vpeq_part s d t \<longrightarrow> vpeq_part t d s"
+  by auto
+
+lemma vpeq_part_reflexive_lemma:"\<forall> s d. vpeq_part s d s"
+  by auto
+
+lemma vpeq_scheduler_transitive_lemma : "\<forall> s t r d. vpeq_sched s d t \<and> vpeq_sched t d r \<longrightarrow> vpeq_sched s d r"
+ by simp
+
+lemma vpeq_scheduler_symmetric_lemma:"\<forall> s t d. vpeq_sched s d t \<longrightarrow> vpeq_sched t d s"
+  by simp
+
+lemma vpeq_scheduler_reflexive_lemma:"\<forall> s d. vpeq_sched s d s"
+  by simp
+
+lemma vpeq1_transitive_lemma : "\<forall> s t r d. (vpeq1 s d t) \<and> (vpeq1 t d r) \<longrightarrow> (vpeq1 s d r)"
+  by auto
+
+lemma vpeq1_symmetric_lemma : "\<forall> s t d. (vpeq1 s d t) \<longrightarrow> (vpeq1 t d s)"
+  by auto
+
+lemma vpeq1_reflexive_lemma : "\<forall> s d. (vpeq1 s d s)"
+  by auto
+
+lemma sched_current_lemma : "\<forall>s t a. vpeq1 s (scheduler sysconf) t \<longrightarrow> (domain_of_event s a) = (domain_of_event t a)"
+  by (metis (no_types) Event.exhaust domain_of_event.simps(1) domain_of_event.simps(2) vpeq1_def vpeq_sched_def)
+  
+lemma schedeler_intf_all_help : "\<forall>d. interference1 (scheduler sysconf) d"
+  by (meson interference1_def is_a_scheduler_def)
+
+lemma no_intf_sched_help : "\<forall>d. interference1 d (scheduler sysconf) \<longrightarrow> d = (scheduler sysconf)"
+  by (simp add: interference1_def is_a_scheduler_def)
+
+lemma reachable_top: "\<forall>s a. (SM.reachable0 s0t exec_event) s \<longrightarrow> (\<exists>s'. (s, s') \<in> exec_event a)"
+  proof -
   {
-    have p4: "\<forall>curth. cur ?t = Some curth \<longrightarrow> t_state ?t curth = RUNNING"
-      unfolding schedule_def Let_def using False by auto
-    fix th
-    assume a2: "waitq ?t th \<noteq> None"
-    have p5: "waitq s = waitq ?t" unfolding schedule_def Let_def
-      by (simp add: option.case_eq_if)
-    have p6: "\<forall>t. t_state s t = READY \<longrightarrow> waitq s t = None"
-      using p3 by force
-    have p7: "\<forall>t. t_state s t = READY \<longrightarrow> waitq ?t t = None"
-      using p5 p6 by force
-    have p8: "\<forall>t. cur s = Some t \<longrightarrow> waitq ?t t = None"
-      using p2 p3 p5 by (metis thread_state_type.distinct(5))
-    moreover
-    have p9: "t_state s th \<noteq> READY"
-      using a2 p7 by auto
-    have p10: "t_state s th = BLOCKED"
-      by (simp add: a2 p3 p5)
-    have p11: "\<forall>t. cur s = Some t \<longrightarrow> t \<noteq> th"
-      using a2 p8 by auto
-    have p12: "t_state ?t th = BLOCKED"
-      using p5 p9 p10 p11 False unfolding schedule_def Let_def
-      apply (cases "cur s") apply auto
-       apply (metis (mono_tags, lifting) p9 some_eq_ex)
-      by (smt p10 p9 some_eq_ex)
-    ultimately have p13: "\<forall>t. cur ?t = Some t \<longrightarrow> t_state ?t t = RUNNING \<and> t_state ?t th = BLOCKED"
-      using p4 p12 by auto
+    fix s a
+    assume p0: "(SM.reachable0 s0t exec_event) s"
+    have "\<exists>s'. (s, s') \<in> exec_event a"
+      proof(induct a)
+        case (hyperc x) show ?case 
+          apply (induct x)
+          by (simp add:exec_event_def)+
+        next
+        case (sys x) then show ?case
+          apply (induct x)
+          by (simp add:exec_event_def schedule_def)+
+      qed        
   }
-  then show ?thesis 
-    using a1 unfolding schedule_def Let_def inv_cur_waitq_def
-    by (smt State.select_convs(1) State.select_convs(4) State.surjective State.update_convs(1) State.update_convs(4) fun_upd_same mem_Collect_eq option.simps(1))
-qed
-
-lemma inv_cur_waitq_k_mem_pool_alloc_helper1:
-  "s \<in> inv_cur_waitq \<Longrightarrow>
-    snd (snd (alloc (zerolevelblocks po) lv (idset s))) = True \<Longrightarrow>
-    \<not> (snd (snd (alloc (zerolevelblocks po) lv (idset s))) = False \<and> WAIT = WAIT) \<Longrightarrow>
-    fst (let ts = t_state s; ps = pools s - {po}; wq = waitq s; cu = cur s; ids = idset s; rpi = alloc (zerolevelblocks po) lv ids;
-             newpo = po\<lparr>zerolevelblocks := fst rpi\<rparr>
-         in if snd (snd rpi) = True then (s\<lparr>pools := ps \<union> {newpo}, idset := fst (snd rpi)\<rparr>, True)
-            else if snd (snd rpi) = False \<and> WAIT = WAIT
-                 then let t = case cu of None \<Rightarrow> s | Some th \<Rightarrow> cur_update Map.empty (s\<lparr>t_state := ts(th := BLOCKED), waitq := wq(th \<mapsto> pname po)\<rparr>) in (schedule t, False)
-                 else (s, False))
-    \<in> inv_cur_waitq"
-  unfolding inv_cur_waitq_def
-  by (smt State.select_convs(1) State.select_convs(3) State.select_convs(4) State.surjective State.update_convs(2) State.update_convs(5) fst_conv mem_Collect_eq)
-
-lemma inv_cur_waitq_k_mem_pool_alloc_helper3:
-  "s \<in> inv_cur_waitq \<Longrightarrow>
-    \<not> snd (snd (alloc (zerolevelblocks po) lv (idset s))) \<Longrightarrow>
-    schedule (case cur s of None \<Rightarrow> s | Some th \<Rightarrow> cur_update Map.empty (s\<lparr>t_state := (t_state s)(th := BLOCKED), waitq := waitq s(th \<mapsto> pname po)\<rparr>)) \<in> inv_cur_waitq"
-proof-
-  assume "s \<in> inv_cur_waitq"
-  hence p0: "\<exists>t. cur s = Some t \<longrightarrow> t_state s t = RUNNING"
-    and p1: "\<forall>th. waitq s th \<noteq> None \<longrightarrow> t_state s th = BLOCKED"
-    apply (simp add: inv_cur_waitq_def)
-    using \<open>s \<in> inv_cur_waitq\<close> inv_cur_waitq_def by auto
-  let ?t = "(case cur s of None \<Rightarrow> s
-            | Some th \<Rightarrow> (s\<lparr>t_state := (t_state s)(th := BLOCKED), waitq := waitq s(th \<mapsto> pname po),cur := None\<rparr>))"
-  {
-    have p2: "cur ?t = None"
-      by (simp add: option.case_eq_if) 
-    from p1 have p3: "\<forall>th. waitq ?t th \<noteq> None \<longrightarrow> t_state ?t th = BLOCKED"
-      by (simp add: option.case_eq_if) 
-    with p2 have p4: "?t \<in> inv_cur_waitq"
-      by (simp add: inv_cur_waitq_def) 
-    from p4 have p5: "schedule ?t \<in> inv_cur_waitq"
-      by (simp add: inv_cur_waitq_schedule) 
-  }
-  then show ?thesis by blast
-qed
-
-lemma inv_cur_waitq_k_mem_pool_alloc_helper2:
-  "s \<in> inv_cur_waitq \<Longrightarrow>
-    snd (snd (alloc (zerolevelblocks po) lv (idset s))) \<noteq> True \<Longrightarrow>
-    fst (let ts = t_state s; ps = pools s - {po}; wq = waitq s; cu = cur s; ids = idset s; rpi = alloc (zerolevelblocks po) lv ids;
-             newpo = po\<lparr>zerolevelblocks := fst rpi\<rparr>
-         in if snd (snd rpi) = True then (s\<lparr>pools := ps \<union> {newpo}, idset := fst (snd rpi)\<rparr>, True)
-            else if snd (snd rpi) = False \<and> WAIT = WAIT
-                 then let t = case cu of None \<Rightarrow> s | Some th \<Rightarrow> cur_update Map.empty (s\<lparr>t_state := ts(th := BLOCKED), waitq := wq(th \<mapsto> pname po)\<rparr>) in (schedule t, False)
-                 else (s, False))
-    \<in> inv_cur_waitq"
-  apply(case_tac "snd (snd (alloc (zerolevelblocks po) lv (idset s))) = False \<and> WAIT = WAIT")
-   prefer 2
-   apply blast
-  apply(simp add:inv_cur_waitq_schedule)
-  using inv_cur_waitq_k_mem_pool_alloc_helper3 by blast
-
-lemma inv_cur_waitq_k_mem_pool_alloc: "s \<in> inv_cur_waitq \<Longrightarrow> fst (k_mem_pool_alloc s po lv ti) \<in> inv_cur_waitq" 
-proof (induct ti)
-  case WAIT
-  then show ?case unfolding k_mem_pool_alloc_def
-    apply(case_tac "snd (snd (alloc (zerolevelblocks po) lv (idset s))) = True")
-     apply(case_tac "snd (snd (alloc (zerolevelblocks po) lv (idset s))) = False \<and> WAIT = WAIT")
-      apply(simp add:Let_def)
-    using inv_cur_waitq_k_mem_pool_alloc_helper1 inv_cur_waitq_k_mem_pool_alloc_helper2 snd_conv
-    unfolding Let_def by simp+
-  case NO_WAIT
-    then show ?case unfolding k_mem_pool_alloc_def Let_def
-      by (simp add: inv_cur_waitq_def)
+  then show ?thesis by auto
   qed
-                                                                         
-lemma inv_cur_waitq_k_mem_pool_free: "s \<in> inv_cur_waitq \<Longrightarrow> fst (k_mem_pool_free s po b) \<in> inv_cur_waitq"
-proof -
-  assume a0: "s \<in> inv_cur_waitq"
-  hence p0: "\<forall>t. cur s = Some t \<longrightarrow> t_state s t = RUNNING"
-    and p1: "\<forall>th. waitq s th \<noteq> None \<longrightarrow> t_state s th = BLOCKED"
-    unfolding inv_cur_waitq_def by auto
-  let ?t = "fst (k_mem_pool_free s po b)"
-  {
-    have p2: "\<forall>t. t_state s t = READY \<longrightarrow> waitq s t = None" using p1 by auto
-    have p3: "\<forall>t. cur s = Some t \<longrightarrow> waitq s t = None" using p0 p1 by auto
-    have p4: "\<forall>t. cur ?t = Some t \<longrightarrow> waitq s t = None" using p2 p3 unfolding k_mem_pool_free_def Let_def by simp
-    have p5: "\<forall>t. cur ?t = Some t \<longrightarrow> t_state ?t t = RUNNING" using p0 p4 fst_conv unfolding k_mem_pool_free_def Let_def
-      by (smt State.ext_inject State.surjective State.update_convs(1) State.update_convs(2) State.update_convs(3) State.update_convs(5) mem_Collect_eq option.distinct(1))
-    fix th
-    assume a1: "waitq ?t th \<noteq> None"
-    have p6: "waitq s th \<noteq> None" unfolding k_mem_pool_free_def Let_def using a1 k_mem_pool_free_def
-      by (smt State.ext_inject State.surjective State.update_convs(2) State.update_convs(3) State.update_convs(5) prod.collapse prod.inject)
-    have p7: "t_state s th = BLOCKED" using p1 p6 by simp
-    have p8: "t_state ?t th = BLOCKED" using a1 p7 fst_conv unfolding k_mem_pool_free_def Let_def
-      by (smt State.ext_inject State.surjective State.update_convs(1) State.update_convs(2) State.update_convs(3) State.update_convs(5))
-    have p9: "(\<forall>t. cur ?t = Some t \<longrightarrow> t_state ?t t = RUNNING) \<and> (\<forall>th. waitq ?t th \<noteq> None \<longrightarrow> t_state ?t th = BLOCKED)"
-      using p5 a1 p8 p1 fst_conv unfolding k_mem_pool_free_def Let_def
-      by (smt State.ext_inject State.surjective State.update_convs(1) State.update_convs(2) State.update_convs(3) State.update_convs(5))
-  }       
-  then show ?thesis using p0 p1 unfolding inv_cur_waitq_def k_mem_pool_free_def Let_def by auto
+
+interpretation SM_enabled
+    s0t exec_event domain_of_event "scheduler sysconf" vpeq1 interference1 
+  using vpeq1_transitive_lemma vpeq1_symmetric_lemma vpeq1_reflexive_lemma sched_current_lemma
+        schedeler_intf_all_help no_intf_sched_help reachable_top nintf_reflx
+        SM.intro[of vpeq1 "scheduler sysconf" domain_of_event interference1]
+        SM_enabled_axioms.intro [of s0t exec_event] 
+        SM_enabled.intro[of domain_of_event "scheduler sysconf" vpeq1 interference1 s0t exec_event] by blast
+
+subsection \<open>Some lemmas of security proofs\<close>
+
+lemma alloc_memory_chg_partstate:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  s' = alloc_memory sysconf s po lv\<rbrakk>
+  \<Longrightarrow> (partitionmem s') (current s) = Some (the ((partitionmem s) (current s)) \<union> (snd (snd (snd (alloc (zerolevelblocks po) lv (memids s))))))"
+  unfolding alloc_memory_def get_partconf_byid_def get_partmem_byid_def Let_def
+  apply auto
+  sorry
+
+lemma sche_imp_not_part:
+  "is_a_scheduler sysconf d \<Longrightarrow> \<not> (is_a_partition sysconf d)"      
+  using sch_not_part by auto
+
+lemma part_imp_not_sch:
+  "is_a_partition sysconf d \<Longrightarrow> \<not> (is_a_scheduler sysconf d)"
+  by (auto simp add: sch_not_part)
+
+subsection \<open>proving "allocate memory" satisfying the "local respect" property\<close>
+lemma alloc_memory_notchg_current:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  s' = alloc_memory sysconf s po lv\<rbrakk>
+  \<Longrightarrow> current s = current s'"
+  by(clarsimp simp: alloc_memory_def get_partconf_byid_def get_partmem_byid_def Let_def)
+
+lemma alloc_memory_sm_sche:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  s' = alloc_memory sysconf s po lv\<rbrakk>
+  \<Longrightarrow> (s\<sim>(scheduler sysconf)\<sim>s')"
+  using alloc_memory_notchg_current part_imp_not_sch
+  by(meson vpeq1_def vpeq_sched_def)
+
+lemma alloc_memory_notchg_partstate:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  is_a_partition sysconf d;
+  d \<noteq> current s;
+  s' = alloc_memory sysconf s po lv\<rbrakk>
+  \<Longrightarrow> (partitionmem s) d = (partitionmem s') d"
+  by(clarsimp simp: alloc_memory_def get_partconf_byid_def get_partmem_byid_def Let_def)
+
+lemma alloc_memory_sm_nitfpart:
+  "\<lbrakk>reachable0 s;
+  is_a_partition sysconf (current s);
+  is_a_partition sysconf d;
+  ((current s) \<setminus>\<leadsto> d);
+  s' = alloc_memory sysconf s po lv\<rbrakk>
+  \<Longrightarrow> (s \<sim> d \<sim> s')"
+  using sche_imp_not_part 
+  apply(clarsimp cong del: is_a_partition_def interference1_def non_interference1_def)
+  using nintf_neq alloc_memory_notchg_partstate by blast
+
+lemma alloc_memory_presrv_lcrsp:
+  assumes p0:"reachable0 s"
+    and   p1:"is_a_partition sysconf (current s)"
+    and   p2:"(current s) \<setminus>\<leadsto> d"
+    and   p3:"s' = alloc_memory sysconf s po lv"
+  shows   "s \<sim> d \<sim> s'"
+proof(cases "is_a_scheduler sysconf d")
+  assume a0:"is_a_scheduler sysconf d"
+  then show ?thesis using is_a_scheduler_def alloc_memory_sm_sche[OF p1 p3] by auto
+next
+  assume a1:"\<not> is_a_scheduler sysconf d"
+  show ?thesis
+  proof(cases "is_a_partition sysconf d")
+    assume b0:"is_a_partition sysconf d"
+    show ?thesis using b0 alloc_memory_sm_nitfpart p0 p1 p2 p3 by blast
+  next
+    assume b1:"\<not> is_a_partition sysconf d"
+    show ?thesis using a1 b1 by auto
+  qed
 qed
+
+lemma alloc_memory_presrv_lcrsp_e:
+  "local_respect_e (hyperc (Buddy_Memory_Alloc po lv))"
+  using alloc_memory_presrv_lcrsp exec_event_def
+        prod.simps(2) vpeq_reflexive_lemma
+  by(auto cong del: vpeq1_def)
+
+subsection \<open>proving "free memory" satisfying the "local respect" property\<close>
+lemma free_memory_notchg_current:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  s' = free_memory sysconf s po b\<rbrakk>
+  \<Longrightarrow> current s = current s'"
+  by(clarsimp simp: free_memory_def get_partconf_byid_def get_partmem_byid_def Let_def)
+
+lemma free_memory_sm_sche:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  s' = free_memory sysconf s po b\<rbrakk>
+  \<Longrightarrow> (s\<sim>(scheduler sysconf)\<sim>s')"
+  using free_memory_notchg_current part_imp_not_sch
+  by(meson vpeq1_def vpeq_sched_def)
+
+lemma free_memory_notchg_partstate:
+  "\<lbrakk>is_a_partition sysconf (current s);
+  is_a_partition sysconf d;
+  d \<noteq> current s;
+  s' = free_memory sysconf s po b\<rbrakk>
+  \<Longrightarrow> (partitionmem s) d = (partitionmem s') d"
+  by(clarsimp simp: free_memory_def get_partconf_byid_def get_partmem_byid_def Let_def)
+
+lemma free_memory_sm_nitfpart:
+  "\<lbrakk>reachable0 s;
+  is_a_partition sysconf (current s);
+  is_a_partition sysconf d;
+  ((current s) \<setminus>\<leadsto> d);
+  s' = free_memory sysconf s po b\<rbrakk>
+  \<Longrightarrow> (s \<sim> d \<sim> s')"
+  using sche_imp_not_part 
+  apply(clarsimp cong del: is_a_partition_def interference1_def non_interference1_def)
+  using nintf_neq free_memory_notchg_partstate by blast
+
+lemma free_memory_presrv_lcrsp:
+  assumes p0:"reachable0 s"
+    and   p1:"is_a_partition sysconf (current s)"
+    and   p2:"(current s) \<setminus>\<leadsto> d"
+    and   p3:"s' = free_memory sysconf s po b"
+  shows   "s \<sim> d \<sim> s'"
+proof(cases "is_a_scheduler sysconf d")
+  assume a0:"is_a_scheduler sysconf d"
+  then show ?thesis using is_a_scheduler_def free_memory_sm_sche[OF p1 p3] by auto
+next
+  assume a1:"\<not> is_a_scheduler sysconf d"
+  show ?thesis
+  proof(cases "is_a_partition sysconf d")
+    assume b0:"is_a_partition sysconf d"
+    show ?thesis using b0 free_memory_sm_nitfpart p0 p1 p2 p3 by blast
+  next
+    assume b1:"\<not> is_a_partition sysconf d"
+    show ?thesis using a1 b1 by auto
+  qed
+qed
+
+lemma free_memory_presrv_lcrsp_e:
+  "local_respect_e (hyperc (Buddy_Memory_Free po b))"
+  using free_memory_presrv_lcrsp exec_event_def
+        prod.simps(2) vpeq_reflexive_lemma
+  by(auto cong del: vpeq1_def)
+
+subsection \<open>proving "schedule" satisfying the "local respect" property\<close>
+lemma schedule_presrv_lcrsp:
+  assumes p0:"(scheduler sysconf) \<setminus>\<leadsto> d"        
+  shows   "s \<sim> d \<sim> s'"
+  using p0 by auto
+
+lemma schedule_presrv_lcrsp_e: "local_respect_e (sys Schedule)"
+  using schedule_presrv_lcrsp exec_event_def prod.simps(2) vpeq_reflexive_lemma by auto
+
+subsection \<open>proving the "local respect" property\<close>
+theorem local_respect:local_respect
+  proof -
+    {
+      fix e
+      have "local_respect_e e"
+        apply(induct e)
+        using alloc_memory_presrv_lcrsp_e free_memory_presrv_lcrsp_e
+        apply (rule Hypercall.induct)
+        using schedule_presrv_lcrsp_e
+        by (rule System_Event.induct)
+    }
+    then show ?thesis using local_respect_all_evt by blast
+  qed
+
+subsection \<open>proving "allocate memory" satisfying the "step consistent" property\<close>
+lemma alloc_memory_presrv_wk_stp_cons:
+      assumes p1:"is_a_partition sysconf (current s)"
+        and   p2:"reachable0 s \<and> reachable0 t"
+        and   p3:"s \<sim> d \<sim> t"
+        and   p4:"s \<sim> (scheduler sysconf) \<sim> t"
+        and   p5:"(current s) \<leadsto> d"
+        and   p6:"s \<sim> (current s) \<sim> t"
+        and   p7:"s' = alloc_memory sysconf s po lv"
+        and   p8:"t' = alloc_memory sysconf t po lv"
+      shows   "s' \<sim> d \<sim> t'"
+proof(cases "is_a_scheduler sysconf d")
+  assume a0:"is_a_scheduler sysconf d"
+  show ?thesis by (smt a0 interference1_def p1 p5 sche_imp_not_part)
+next
+  assume a1:"\<not> is_a_scheduler sysconf d"
+  show ?thesis
+  proof(cases "is_a_partition sysconf d")
+    assume b0:"is_a_partition sysconf d"
+    show ?thesis
+    proof(cases "current s = d")
+      assume c0:"current s = d"
+      have d0:"vpeq_part s' d t'"
+      proof-
+        {
+          have e1:"partitionmem s' d = partitionmem t' d"
+          proof-
+            {
+              from p3 b0 have f1:"partitionmem s d = partitionmem t d" 
+                using a1 by fastforce
+              have "partitionmem s' d = partitionmem t' d" sorry
+            }
+            then show ?thesis by auto
+          qed
+          then have "vpeq_part s' d t'" using vpeq_part_def by auto
+        }
+        then show ?thesis by auto
+      qed
+      then show ?thesis using a1 b0 c0 by fastforce
+    next
+      assume c1:"current s \<noteq> d"
+      have d1:"vpeq_part s' d t'"
+      proof-
+        {
+          have e1:"partitionmem s' d = partitionmem t' d"
+            using alloc_memory_notchg_partstate
+            by (meson c1 interference1_def p1 p5 sche_imp_not_part)
+          then have "vpeq_part s' d t'" using vpeq_part_def by auto
+        }
+        then show ?thesis by auto
+      qed
+      then show ?thesis using a1 b0 c1 by auto
+    qed
+  next
+    assume b1:"\<not> is_a_partition sysconf d"
+    show ?thesis using a1 b1 by auto
+  qed
+qed
+
+lemma alloc_memory_presrv_wk_stp_cons_e: "weak_step_consistent_e (hyperc (Buddy_Memory_Alloc po lv))"
+  using alloc_memory_presrv_wk_stp_cons weak_step_consistent_e_def exec_event_def mem_Collect_eq
+        non_interference_def singletonD sched_vpeq
+  sorry
+ (* by (smt Event.case(1) Hypercall.case(1) domain_of_event.simps(1) event_enabled.simps(1) option.sel prod.simps(2))*)
+
+subsection \<open>proving "free memory" satisfying the "step consistent" property\<close>
+lemma free_memory_presrv_wk_stp_cons_e: "weak_step_consistent_e (hyperc (Buddy_Memory_Free po b))"
+  sorry
+
+subsection \<open>proving "schedule" satisfying the "step consistent" property\<close>
+lemma schedule_presrv_wk_stp_cons:
+    assumes p1:"reachable0 s \<and> reachable0 t"
+      and   p3:"s \<sim> d \<sim> t"
+      and   p5:"(scheduler sysconf) \<leadsto> d"
+      and   p6:"s \<sim> (scheduler sysconf) \<sim> t"
+      and   p7:"s' \<in> schedule sysconf s"
+      and   p8:"t' \<in> schedule sysconf t"
+    shows   "s' \<sim> d \<sim> t'"
+proof(cases "is_a_scheduler sysconf d")
+  assume a0: "is_a_scheduler sysconf d"
+  from p7 p8 have "current s' = current t'" unfolding schedule_def by simp
+  with a0 show ?thesis using a0 p3 p7 p8 schedule_def by auto 
+next
+  assume a1: "\<not> is_a_scheduler sysconf d"
+  show ?thesis
+  proof(cases "is_a_partition sysconf d")
+    assume b0: "is_a_partition sysconf d"
+    with p3 have b00: "vpeq_part s d t"
+      unfolding vpeq1_def by (metis a1 is_a_scheduler_def)
+    have b1: "vpeq_part s' d t'"
+    proof -
+      have c1:"partitionmem s' d = partitionmem t' d"
+      proof - 
+        {
+          from p3 b0 have f1:"partitionmem s d = partitionmem t d" 
+            using a1 by fastforce
+          from p7 have f2:"partitionmem s d = partitionmem s' d"
+            by (simp add: schedule_def)
+          from p8 have f3:"partitionmem t d = partitionmem t' d"
+            by (simp add: schedule_def)
+          with f1 f2 have "partitionmem s' d = partitionmem t' d" by auto
+        }
+        then show ?thesis by auto
+      qed
+      then have "vpeq_part s' d t'" using vpeq_part_def by simp
+      then show ?thesis by auto
+    qed
+    then show ?thesis using a1 b0 by auto
+  next
+    assume b1: "\<not> is_a_partition sysconf d"
+    show ?thesis using p3 p7 p8 schedule_def a1 b1 by auto         
+  qed
+qed
+
+lemma schedule_presrv_wk_stp_cons_e: "weak_step_consistent_e (sys Schedule)"
+  using schedule_presrv_wk_stp_cons weak_step_consistent_e_def exec_event_def mem_Collect_eq
+        non_interference1_def non_interference_def singletonD sched_vpeq
+  by (smt Event.case(2) System_Event.case(1) domain_of_event.simps(2) event_enabled.simps(2)
+          option.sel prod.simps(2) vpeq1_def vpeq_sched_def)
+
+subsection \<open>proving the "weakly step consistent" property\<close>
+theorem weak_step_consistent:weak_step_consistent
+  proof -
+    {
+      fix e
+      have "weak_step_consistent_e e"
+        apply(induct e)
+        using alloc_memory_presrv_wk_stp_cons_e free_memory_presrv_wk_stp_cons_e
+        apply (rule Hypercall.induct)
+        using schedule_presrv_wk_stp_cons_e
+        by (rule System_Event.induct)
+    }
+    then show ?thesis using weak_step_consistent_all_evt by blast
+  qed
+
+subsection \<open>Security Proofs\<close>
+
+theorem noninfluence_sat: noninfluence
+  using local_respect uc_eq_noninf weak_step_consistent weak_with_step_cons by blast
+
+theorem noninfluence_gen_sat: noninfluence_gen
+  using noninf_eq_noninf_gen noninfluence_sat by blast 
+
+theorem weak_noninfluence_sat: weak_noninfluence
+  using noninf_impl_weak noninfluence_sat by blast
+  
+theorem nonleakage_sat: nonleakage
+  using noninf_impl_nonlk noninfluence_sat by blast
+
+theorem noninterference_r_sat: noninterference_r
+  using noninf_impl_nonintf_r noninfluence_sat by blast
+  
+theorem noninterference_sat: noninterference
+  using noninterference_r_sat nonintf_r_impl_noninterf by blast
+  
+theorem weak_noninterference_r_sat: weak_noninterference_r
+  using noninterference_r_sat nonintf_r_impl_wk_nonintf_r by blast
+  
+theorem weak_noninterference_sat: weak_noninterference
+  using noninterference_sat nonintf_impl_weak by blast
 
 end

@@ -521,14 +521,14 @@ lemma no_replace:
   tree_map (\<lambda>b1. if b1 = L b then L b' else b1) blo = blo"
   by (smt tree.map_cong0 tree.map_ident)
 
-fun split :: "Block \<Rightarrow> ID set \<Rightarrow> nat \<Rightarrow> (Block \<times> ID set)"
-  where "split b ids lv = (if lv = 0 then (b, ids)
+fun split :: "Block \<Rightarrow> ID set \<Rightarrow> nat \<Rightarrow> (Block \<times> ID set \<times> ID)"
+  where "split b ids lv = (if lv = 0 then (b, ids, snd (L b))
                           else
                             let re = divide b ids;
                                 node = fst re;
                                 newids = snd re;
                                 c1 = split (LL node) newids (lv - 1) in
-                                (Node (fst c1) (LR node) (RL node) (RR node), snd c1))"
+                                (Node (fst c1) (LR node) (RL node) (RR node), fst (snd c1), snd (snd c1)))"
 
 lemma split_induct:
   "lv > 0 \<Longrightarrow>
@@ -579,35 +579,37 @@ fun merge :: "Block \<Rightarrow> ID set \<Rightarrow> (Block \<times> ID set)"
                         m4 = merge rr (snd m3) in
                     combine (Node (fst m1) (fst m2) (fst m3) (fst m4)) (snd m4))"
 
-definition alloc1 :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool)"
+definition alloc1 :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool \<times> ID set)"
   where "alloc1 bset lv ids \<equiv> (let blo = (SOME b. b \<in> bset \<and> freesets_level b lv \<noteq> {});
                                    b = (SOME l. l \<in> freesets_level blo lv);
+                                   allocid = snd (L b);
                                    newblo = replace blo b (set_state_type b ALLOC) in
-                              ((bset - {blo}) \<union> {newblo}, ids, True))"
+                              ((bset - {blo}) \<union> {newblo}, ids, True, {allocid}))"
 
-definition alloc :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool)"
+definition alloc :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool \<times> ID set)"
   where "alloc bset lv ids \<equiv>
          if (exists_freelevel bset lv) then
             let lmax = freesets_maxlevel bset lv in
                 if lmax = lv then
                    alloc1 bset lv ids
-                else                                   
+                else
                    let blo = (SOME b. b \<in> bset \<and> freesets_level b lmax \<noteq> {});
                        b = (SOME l. l \<in> freesets_level blo lmax);
                        re = split b ids (lv - lmax);
                        subbtr = fst re;
-                       newids = snd re;
+                       newids = fst (snd re);
+                       allocid = snd (snd re);
                        newbtr = replace_leaf blo b subbtr in
-                   (((bset - {blo}) \<union> {newbtr}), newids, True)
-         else (bset, ids, False)"
+                   (((bset - {blo}) \<union> {newbtr}), newids, True, {allocid})
+         else (bset, ids, False, {})"
 
-definition free :: "Block set \<Rightarrow> Block \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool)"
-  where "free bset b ids \<equiv>
-         if (\<exists>btree \<in> bset. (L b) \<in> set btree) then
+definition free :: "Block set \<Rightarrow> Block \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool)"
+  where "free bset b lv ids \<equiv>
+         if (\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)) then
             if fst (L b) = FREE then
                 (bset, ids, False)
             else
-                let btree = (THE t. t \<in> bset \<and> (L b) \<in> set t);
+                let btree = (THE t. t \<in> bset \<and> (L b) \<in> set t \<and> lv = get_level t (L b));
                     freeblo = replace btree b (set_state_type b FREE);
                     re = merge freeblo ids;
                     newblo = fst re;

@@ -518,14 +518,14 @@ lemma diff_ids_alloc_branch1:
   exists_freelevel bset lv \<Longrightarrow>
   lmax = freesets_maxlevel bset lv \<Longrightarrow>
   lmax = lv \<Longrightarrow>
-  (newbset, newids, re) = alloc1 bset lv ids \<Longrightarrow>
+  (newbset, newids, re, reid) = alloc1 bset lv ids \<Longrightarrow>
   diff_ids_valid newbset"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "exists_freelevel bset lv"
      and a2: "lmax = freesets_maxlevel bset lv"
      and a3: "lmax = lv"
-     and a4: "(newbset, newids, re) = alloc1 bset lv ids"
+     and a4: "(newbset, newids, re, reid) = alloc1 bset lv ids"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
@@ -559,8 +559,8 @@ proof-
   let ?newb = "SOME newb. newb = replace ?blo ?l (set_state_type ?l ALLOC)"
   have diff_newblo: "diff_ids ?newb"
     using diff_ids_replace diff_blo leaf_belong by simp
-  have alloc1_re: "(newbset, newids, re) = (((bset - {?blo}) \<union> {?newb}), ids, True)"
-    using a4 unfolding alloc1_def by (metis some_eq_trivial) 
+  have alloc1_re: "(newbset, newids, re, reid) = (((bset - {?blo}) \<union> {?newb}), ids, True, {snd (L ?l)})"
+    using a4 unfolding alloc1_def by (metis some_eq_trivial)
   have diff_newbset1: "\<forall>b \<in> newbset. diff_ids b"
     using alloc1_re diff_bset1 diff_blo diff_newblo by blast
   have same_ids_newblo: "id_set ?blo = id_set ?newb"
@@ -1244,15 +1244,15 @@ qed
 
 lemma diff_ids_free_branch1:
   "diff_ids_valid bset \<Longrightarrow>
-  \<not> (\<exists>btree \<in> bset. (L b) \<in> set btree) \<Longrightarrow>
-  diff_ids_valid (fst (free bset b ids))"
+  \<not> (\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)) \<Longrightarrow>
+  diff_ids_valid (fst (free bset b lv ids))"
   unfolding free_def Let_def by auto
 
 lemma diff_ids_free_branch2:
   "diff_ids_valid bset \<Longrightarrow>
-  \<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  \<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) = FREE \<Longrightarrow>
-  diff_ids_valid (fst (free bset b ids))"
+  diff_ids_valid (fst (free bset b lv ids))"
   unfolding free_def Let_def by auto
 
 lemma combine_id:
@@ -1703,22 +1703,22 @@ lemma diff_ids_free_branch3:
   "diff_ids_valid bset \<Longrightarrow>
   finite ids \<Longrightarrow>
   \<forall>b\<in>bset. id_set b \<subseteq> ids \<Longrightarrow>
-  \<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  \<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) \<noteq> FREE \<Longrightarrow>
-  (newbset, newids, re) = free bset b ids \<Longrightarrow>
+  (newbset, newids, re) = free bset b lv ids \<Longrightarrow>
   diff_ids_valid newbset"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "finite ids"
      and a2: "\<forall>b\<in>bset. id_set b \<subseteq> ids"
-     and a3: "\<exists>btree \<in> bset. (L b) \<in> set btree"
+     and a3: "\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
      and a4: "fst (L b) \<noteq> FREE"
-     and a5: "(newbset, newids, re) = free bset b ids"
+     and a5: "(newbset, newids, re) = free bset b lv ids"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
     using a0 diff_ids_valid_def by auto
-  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree"
+  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
     using a3 diff_bset2
   proof -
     { fix tt :: "(block_state_type \<times> nat) tree" and tta :: "(block_state_type \<times> nat) tree \<Rightarrow> (block_state_type \<times> nat) tree"
@@ -1731,8 +1731,8 @@ proof-
     then show ?thesis
       by (metis a3)
   qed
-  let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t"
-  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree"
+  let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t \<and> lv = get_level t (L b)"
+  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree \<and> lv = get_level ?btree (L b)"
     using the_P[OF exi_btree] by blast
   have diff_btree: "diff_ids ?btree"
     using the_btree diff_bset1 by auto
@@ -1792,15 +1792,15 @@ definition "block_free_valid bset \<equiv> (\<forall>b \<in> bset. block_free b)
 
 lemma block_free_free_branch1:
   "block_free_valid bset \<Longrightarrow>
-  \<not> (\<exists>btree \<in> bset. (L b) \<in> set btree) \<Longrightarrow>
-  block_free_valid (fst (free bset b ids))"
+  \<not> (\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)) \<Longrightarrow>
+  block_free_valid (fst (free bset b lv ids))"
   unfolding free_def Let_def by auto
 
 lemma block_free_free_branch2:
   "block_free_valid bset \<Longrightarrow>
-  \<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  \<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) = FREE \<Longrightarrow>
-  block_free_valid (fst (free bset b ids))"
+  block_free_valid (fst (free bset b lv ids))"
   unfolding free_def Let_def by auto
 
 lemma block_free_merge:
@@ -1856,21 +1856,21 @@ qed
 lemma block_free_free_branch3:
   "diff_ids_valid bset \<Longrightarrow>
   block_free_valid bset \<Longrightarrow>
-  \<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  \<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) \<noteq> FREE \<Longrightarrow>
-  (newbset, newids, re) = free bset b ids \<Longrightarrow>
+  (newbset, newids, re) = free bset b lv ids \<Longrightarrow>
   block_free_valid newbset"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "block_free_valid bset"
-     and a2: "\<exists>btree \<in> bset. (L b) \<in> set btree"
+     and a2: "\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
      and a3: "fst (L b) \<noteq> FREE"
-     and a4: "(newbset, newids, re) = free bset b ids"
+     and a4: "(newbset, newids, re) = free bset b lv ids"
   have diff_bset: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
     using a0 diff_ids_valid_def by auto
   have free_bset: "(\<forall>b \<in> bset. block_free b)"
     using a1 block_free_valid_def by auto
-  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree"
+  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
     using a1 diff_bset
     proof -
       { fix tt :: "(block_state_type \<times> nat) tree" and tta :: "(block_state_type \<times> nat) tree \<Rightarrow> (block_state_type \<times> nat) tree"
@@ -1883,8 +1883,8 @@ proof-
       then show ?thesis
         by (metis a2)
     qed
-    let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t"
-  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree"
+    let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t \<and> lv = get_level t (L b)"
+  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree \<and> lv = get_level ?btree (L b)"
     using the_P[OF exi_btree] by blast
   have free_btree: "block_free ?btree"
     using the_btree free_bset by auto
@@ -2145,7 +2145,7 @@ lemma block_free_alloc_branch1:
   exists_freelevel bset lv \<Longrightarrow>
   lmax = freesets_maxlevel bset lv \<Longrightarrow>
   lmax = lv \<Longrightarrow>
-  (newbset, newids, re) = alloc1 bset lv ids \<Longrightarrow>
+  (newbset, newids, re, reid) = alloc1 bset lv ids \<Longrightarrow>
   block_free_valid newbset"
 proof-
   assume a0: "diff_ids_valid bset"
@@ -2153,7 +2153,7 @@ proof-
      and a2: "exists_freelevel bset lv"
      and a3: "lmax = freesets_maxlevel bset lv"
      and a4: "lmax = lv"
-     and a5: "(newbset, newids, re) = alloc1 bset lv ids"
+     and a5: "(newbset, newids, re, reid) = alloc1 bset lv ids"
   have diff_bset: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have free_bset: "(\<forall>b \<in> bset. block_free b)"
@@ -2190,7 +2190,7 @@ proof-
   let ?newb = "SOME newb. newb = replace ?blo ?l (set_state_type ?l ALLOC)"
   have free_newblo: "block_free ?newb"
     using block_free_replace_alloc diff_blo free_blo leaf_belong by simp
-  have alloc1_re: "(newbset, newids, re) = (((bset - {?blo}) \<union> {?newb}), ids, True)"
+  have alloc1_re: "(newbset, newids, re, reid) = (((bset - {?blo}) \<union> {?newb}), ids, True, {snd (L ?l)})"
     using a5 unfolding alloc1_def by (metis some_eq_trivial) 
   have free_newbset: "\<forall>b \<in> newbset. block_free b"
     using alloc1_re free_bset free_blo free_newblo by blast
@@ -3344,14 +3344,14 @@ lemma alloc_direct_branch_freesets:
   exists_freelevel bset lv \<Longrightarrow>
   lmax = freesets_maxlevel bset lv \<Longrightarrow>
   lmax = lv \<Longrightarrow>
-  (newbset, newids, re) = alloc1 bset lv ids \<Longrightarrow> 
+  (newbset, newids, re, reid) = alloc1 bset lv ids \<Longrightarrow> 
   \<exists>l. l \<in> freesets_pool bset \<and> l \<notin> freesets_pool newbset \<and> freesets_pool bset = freesets_pool newbset \<union> {l}"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "exists_freelevel bset lv"
      and a2: "lmax = freesets_maxlevel bset lv"
      and a3: "lmax = lv"
-     and a4: "(newbset, newids, re) = alloc1 bset lv ids"
+     and a4: "(newbset, newids, re, reid) = alloc1 bset lv ids"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
@@ -3404,7 +3404,7 @@ proof-
   have change_freesets: "freesets ?blo = freesets ?newb \<union> {?l}"
     using alloc_direct_sub_freesets diff_blo leaf_l leaf_free leaf_belong by simp
 (*------------------------------------------------------------------------------------------------*)
-  have alloc1_re: "(newbset, newids, re) = (((bset - {?blo}) \<union> {?newb}), ids, True)"
+  have alloc1_re: "(newbset, newids, re, reid) = (((bset - {?blo}) \<union> {?newb}), ids, True, {snd (L ?l)})"
     using a4 unfolding alloc1_def by metis
   have leaf_not_freesets_pool: "?l \<notin> freesets_pool newbset"
     using alloc1_re not_leaf_freesets_pool not_free_newblo unfolding freesets_pool_def by blast
@@ -3697,14 +3697,14 @@ lemma alloc_direct_branch_allocsets:
   exists_freelevel bset lv \<Longrightarrow>
   lmax = freesets_maxlevel bset lv \<Longrightarrow>
   lmax = lv \<Longrightarrow>
-  (newbset, newids, re) = alloc1 bset lv ids \<Longrightarrow>
+  (newbset, newids, re, reid) = alloc1 bset lv ids \<Longrightarrow>
   \<exists>l. l \<notin> allocsets_pool bset \<and> l \<in> allocsets_pool newbset \<and> allocsets_pool newbset = allocsets_pool bset \<union> {l}"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "exists_freelevel bset lv"
      and a2: "lmax = freesets_maxlevel bset lv"
      and a3: "lmax = lv"
-     and a4: "(newbset, newids, re) = alloc1 bset lv ids"
+     and a4: "(newbset, newids, re, reid) = alloc1 bset lv ids"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
@@ -3765,7 +3765,7 @@ proof-
   have leaf_allocsets: "?l' \<in> allocsets ?newb"
     using change_allocsets by auto
 (*------------------------------------------------------------------------------------------------*)
-  have alloc1_re: "(newbset, newids, re) = (((bset - {?blo}) \<union> {?newb}), ids, True)"
+  have alloc1_re: "(newbset, newids, re, reid) = (((bset - {?blo}) \<union> {?newb}), ids, True, {snd (L ?l)})"
     using a4 unfolding alloc1_def by metis
   have leaf_allocsets_pool: "?l' \<in> allocsets_pool newbset"
     using alloc1_re leaf_allocsets unfolding allocsets_pool_def by blast
@@ -4090,14 +4090,14 @@ proof-
 qed
 
 lemma free_fail_branch1:
-  "\<not> (\<exists>btree \<in> bset. (L b) \<in> set btree) \<Longrightarrow>
-  fst (free bset b ids) = bset"
+  "\<not> (\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)) \<Longrightarrow>
+  fst (free bset b lv ids) = bset"
   unfolding free_def Let_def by auto
 
 lemma free_fail_branch2:
-  "\<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  "\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) = FREE \<Longrightarrow>
-  fst (free bset b ids) = bset"
+  fst (free bset b lv ids) = bset"
   unfolding free_def Let_def by auto
 
 lemma free_success_sub_allocsets:
@@ -4290,21 +4290,21 @@ qed
 lemma free_success_branch_allocsets:
   "diff_ids_valid bset \<Longrightarrow>
   leaf b \<Longrightarrow>
-  \<exists>btree \<in> bset. (L b) \<in> set btree \<Longrightarrow>
+  \<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b) \<Longrightarrow>
   fst (L b) \<noteq> FREE \<Longrightarrow>
-  (newbset, newids, re) = free bset b ids \<Longrightarrow>
+  (newbset, newids, re) = free bset b lv ids \<Longrightarrow>
   allocsets_pool bset = allocsets_pool newbset \<union> {b}"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "leaf b"
-     and a2: "\<exists>btree \<in> bset. (L b) \<in> set btree"
+     and a2: "\<exists>btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
      and a3: "fst (L b) \<noteq> FREE"
-     and a4: "(newbset, newids, re) = free bset b ids"
+     and a4: "(newbset, newids, re) = free bset b lv ids"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
     using a0 diff_ids_valid_def by auto
-  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree"
+  have exi_btree: "\<exists>!btree \<in> bset. (L b) \<in> set btree \<and> lv = get_level btree (L b)"
     using a3 diff_bset2
     proof -
       { fix tt :: "(block_state_type \<times> nat) tree" and tta :: "(block_state_type \<times> nat) tree \<Rightarrow> (block_state_type \<times> nat) tree"
@@ -4317,8 +4317,8 @@ proof-
       then show ?thesis
         by (metis a2)
     qed
-  let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t"
-  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree"
+  let ?btree = "THE t. t \<in> bset \<and> (L b) \<in> set t \<and> lv = get_level t (L b)"
+  have the_btree: "?btree \<in> bset \<and> (L b) \<in> set ?btree \<and> lv = get_level ?btree (L b)"
     using the_P[OF exi_btree] by blast
   have diff_btree: "diff_ids ?btree"
     using the_btree diff_bset1 by auto
