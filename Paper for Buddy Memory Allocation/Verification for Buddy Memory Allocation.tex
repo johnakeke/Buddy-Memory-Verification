@@ -3,13 +3,14 @@
 
 \begin{document}
 
-\title{Buddy Memory Model\thanks{Supported by organization x.}}
+\title{A Specification for Buddy Memory Model
+		\thanks{Supported by organization x.}}
 
-\titlerunning{Buddy Memory Model}
+\titlerunning{Buddy Memory Model Verification}
 
 
 \author{Ke Jiang\inst{1} \and
-		Yongwang Zhao\inst{2} \and
+		Yongwang Zhao\inst{2,3} \and
 		David San\'{a}n\inst{1} \and
 		Yang Liu\inst{1}}
 
@@ -18,18 +19,20 @@
 
 \institute{SCSE, Nanyang Technological University, Singapore \\ 
 	\email{johnjiang,sanan,yangliu@ntu.edu.sg} \and
-		   SCSE, Beihang University, Beijing, China \\
+		   SCSE, Beihang University, Beijing, China \and
+		   BDBC, Beihang University, Beijing, China \\
 	\email{zhaoyw@buaa.edu.cn}}
 
 \maketitle              
 
 
 \begin{abstract}
-It is reasonable that, from the perspective of memory blocks or units, the formalization generally includes two aspects: a set of memory operations, and the structure of memory blocks or units. However, formalization of a concrete memory model with detailed algorithm is much more different from the general method which requires as abstract as possible to be independent of the implementation details of any particular memory model. Concrete memory algorithm means that we have to explore every details of the design, which brings great complexity to the verification work, but of great significance for the practical application. For this aim, we represent an abstract specification for a concrete memory model from Zephyr OS with buddy memory algorithm, in forms of axioms that guarantee the correctness of memory structures and memory behaviors, as well as meeting the requirements of security. Thereafter, we analyze the complexity of this algorithm to provide improvement suggestions for industrial products.
+Memory management is the process of controlling and coordinating memories, assigning portions called blocks to various running programs, and adopts kinds of allocation and deallocation strategies to optimize overall system performance. Buddy memory algorithm is such a common strategy used in operating systems. Formalizations of memory models often represent memory behaviors such as reads and writes, which are as abstract as possible to be independent of the implementation details. Due to the fact that algorithm is closer to implementation layer, therefore, formalization of a concrete memory model with detailed algorithm is much more difficult. To verify memory model algorithm we need explore every details of designs, which brings great complexity to the verification work, but of great significance to the practical applications. In this paper, we represent a specification including algorithm implementation details like allocates and deallocates operations, and split and merge operations for buddy memory model. Meanwhile, the specification is in forms of axioms that guarantee the correctness of behaviors, as well as meeting the requirements of security. Interactive theorem prover Isabelle/HOL is also a key component of our verification work.
 
-\keywords{Zephyr OS \and
-		Buddy Memory Model \and
-		Axiom Specification.}
+\keywords{Buddy Memory Model \and
+		Axiomatic Specification \and
+		Functional Correctness \and
+		Security.}
 \end{abstract}
 
 

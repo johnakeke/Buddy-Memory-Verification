@@ -1,12 +1,14 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.7)  17 MAR 2019 17:05
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  26 MAR 2019 11:47
 entering extended mode
 **Verification*for*Buddy*Memory*Allocation.tex
 
-("D:\Memory_Verification\Verification for Buddy Memory Allocation\Verification 
-for Buddy Memory Allocation.tex"
+("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
+er for Buddy Memory Allocation\Verification for Buddy Memory Allocation.tex"
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for loaded.
-("D:\Memory_Verification\Verification for Buddy Memory Allocation\llncs.cls"
+
+("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
+er for Buddy Memory Allocation\llncs.cls"
 Document Class: llncs 2018/03/10 v2.20 
  LaTeX document class for Lecture Notes in Computer Science
 (C:\CTEX\MiKTeX\tex\latex\base\article.cls
@@ -161,8 +163,8 @@ Package: ltxcmds 2011/04/18 v1.20 LaTeX kernel commands for general use (HO)
 \Gin@req@height=\dimen124
 \Gin@req@width=\dimen125
 )
-("D:\Memory_Verification\Verification for Buddy Memory Allocation\Verification 
-for Buddy Memory Allocation.aux")
+("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
+er for Buddy Memory Allocation\Verification for Buddy Memory Allocation.aux")
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 4.
 LaTeX Font Info:    ... okay on input line 4.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 4.
@@ -191,65 +193,74 @@ LaTeX Font Info:    ... okay on input line 4.
 \everyMPtoPDFconversion=\toks20
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <14.4> on input line 24.
+(Font)              <14.4> on input line 26.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 24.
+(Font)              <7> on input line 26.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 24.
+(Font)              <5> on input line 26.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <9> on input line 24.
+(Font)              <9> on input line 26.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 24.
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 32.
+(Font)              <6> on input line 26.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 35.
  (C:\CTEX\MiKTeX\tex\latex\base\omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <9> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 32.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 35.
  [1
 
 {C:/CTEX/UserData/pdftex/config/pdftex.map{Unicode.sfd}{UGBK.sfd}}]
-Overfull \hbox (14.12703pt too wide) in paragraph at lines 48--49
+Overfull \hbox (14.12703pt too wide) in paragraph at lines 51--52
 \OT1/cmr/m/n/10 Order Log-i-cal and Is-abelle is it-s gener-ic in-ter-ac-tive t
 he-o-rem prover. In Is-abelle/HOL,
  []
 
-[2] [3] [4] [5] [6] [7]
-Underfull \hbox (badness 10000) in paragraph at lines 176--177
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [2]
+[3]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [4]
+[5] [6] [7]
+Underfull \hbox (badness 10000) in paragraph at lines 179--180
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 180--187
+Underfull \hbox (badness 10000) in paragraph at lines 183--190
 
  []
 
 [8] [9]
-("D:\Memory_Verification\Verification for Buddy Memory Allocation\Verification 
-for Buddy Memory Allocation.aux") ) 
+("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
+er for Buddy Memory Allocation\Verification for Buddy Memory Allocation.aux") )
+ 
 Here is how much of TeX's memory you used:
  1572 strings out of 495354
- 20259 string characters out of 3183859
- 82147 words of memory out of 3000000
+ 20655 string characters out of 3183859
+ 83147 words of memory out of 3000000
  4753 multiletter control sequences out of 15000+200000
  11576 words of font info for 40 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  29i,8n,21p,1895b,227s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/
-cm/cmbx10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/CTE
-X/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/CTEX/MiKTeX/fonts/type1/p
-ublic/amsfonts/cm/cmbxti10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/c
-mmi10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/CTEX/MiK
-TeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/CTEX/MiKTeX/fonts/type1/public
-/amsfonts/cm/cmmib10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.p
-fb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/CTEX/MiKTeX/font
-s/type1/public/amsfonts/cm/cmr7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts
-/cm/cmr9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsl10.pfb><C:/CTEX
-/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/CTEX/MiKTeX/fonts/type1/p
-ublic/amsfonts/cm/cmsy9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmti
-10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on "Verification for Buddy Memory Allocation.pdf" (9 pages, 2473
-62 bytes).
+<C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/CTEX/MiKTeX/fonts
+/type1/public/amsfonts/cm/cmbx12.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
+s/cm/cmbx9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><C:/
+CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/CTEX/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmmi6.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/
+cmmi7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmib10.pfb><C:/CTEX/M
+iKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/CTEX/MiKTeX/fonts/type1/publ
+ic/amsfonts/cm/cmr6.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb
+><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/CTEX/MiKTeX/fonts/
+type1/public/amsfonts/cm/cmsl10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts
+/cm/cmsy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/CTE
+X/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/CTEX/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmtt9.pfb>
+Output written on "Verification for Buddy Memory Allocation.pdf" (9 pages, 2489
+04 bytes).
 PDF statistics:
  100 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
