@@ -1,12 +1,11 @@
 \documentclass[runningheads]{llncs}
 \usepackage{graphicx}
+\usepackage{amssymb,amsmath}
 
 \begin{document}
 
-\title{A Specification for Buddy Memory Model
-		\thanks{Supported by organization x.}}
-
-\titlerunning{Buddy Memory Model Verification}
+\title{Formal Verification for A Buddy Allocation Model Specification
+	\thanks{Supported by organization x.}}
 
 
 \author{Ke Jiang\inst{1} \and
@@ -17,64 +16,116 @@
 \authorrunning{Ke Jiang et al.}
 
 
-\institute{SCSE, Nanyang Technological University, Singapore \\ 
+\institute{School of Computer Science and Engineering, \\
+			Nanyang Technological University, Singapore \\ 
 	\email{johnjiang,sanan,yangliu@ntu.edu.sg} \and
-		   SCSE, Beihang University, Beijing, China \and
-		   BDBC, Beihang University, Beijing, China \\
+			School of Computer Science and Engineering, \\
+			Beihang University, Beijing, China \and
+			Beijing Advanced Innovation Center for Big Data and Brain Computing, \\
+			Beihang University, Beijing, China \\
 	\email{zhaoyw@buaa.edu.cn}}
 
-\maketitle              
+\maketitle
 
 
 \begin{abstract}
-Memory management is the process of controlling and coordinating memories, assigning portions called blocks to various running programs, and adopts kinds of allocation and deallocation strategies to optimize overall system performance. Buddy memory algorithm is such a common strategy used in operating systems. Formalizations of memory models often represent memory behaviors such as reads and writes, which are as abstract as possible to be independent of the implementation details. Due to the fact that algorithm is closer to implementation layer, therefore, formalization of a concrete memory model with detailed algorithm is much more difficult. To verify memory model algorithm we need explore every details of designs, which brings great complexity to the verification work, but of great significance to the practical applications. In this paper, we represent a specification including algorithm implementation details like allocates and deallocates operations, and split and merge operations for buddy memory model. Meanwhile, the specification is in forms of axioms that guarantee the correctness of behaviors, as well as meeting the requirements of security. Interactive theorem prover Isabelle/HOL is also a key component of our verification work.
+Buddy allocation algorithms are widely adopted by memory management systems to manage the address space accessed by applications. However, errors in any stage of the development process of the memory management component, from the specification to the implementation, may lead to critical issues in other components using it. We apply formal methods to ensure the absence of any misbehavior. Rigorous mathematical proofs provide strong assurance to the development process. In this paper, we firstly present a specification for the buddy allocation algorithm. And thence we validate enough properties to guarantee functional correctness of this algorithm. Finally, we construct execution traces to verify the integrity for security. Through these efforts, we propose a buddy allocation model that provides both functional correctness and security. Also, we use interactive theorem prover Isabelle/HOL to carry out the verification work.
 
-\keywords{Buddy Memory Model \and
-		Axiomatic Specification \and
+\keywords{Memory Specification \and
+		Formal Verification \and
 		Functional Correctness \and
 		Security.}
 \end{abstract}
 
 
 \section{Introduction}
-Many specifications treat memory as an assignment operation, thus they usually offer a set of locations and a set of values. Their memory behaviors may include some very abstract operations like allocation, free, writes and reads. However when reasoning about low-level codes in a specific operating system, our focus changes because of the concrete memory management algorithm. For example, when we invoke \textbf{k\_mem\_pool\_alloc()} in Zephyr OS, it runs a complicated buddy memory algorithm. If we continue to abstract \textsl{k\_mem\_pool\_alloc()} into a simple assignment operation, it will be out of date for verifying the memory management system in Zephyr OS.
+In the past several decades, buddy allocation algorithms have been applied in the memory management systems. Errors in any stage of the development process of the memory management component may lead to critical issues in other components who invoke it. To improve confidence on the reliability of the development process, verification of functional correctness and security properties is applied into each stage, from the specification level to the implementation level, even the machine code level. Formal methods have been successfully applied in the verification of many critical systems due to these methods provide strong assurance by rigorous mathematical proofs. Therefore, we apply formal methods to ensure the absence of any misbehavior during the development process of the buddy allocation model.
 
-Therefore the issue we care about is how, then, will it affect the correctness and security of memory operating system when we introduce complex memory algorithm above the abstract memory operations, which means we have to expand these abstract memory operations. Usually our verification to a memory model is nothing more than these properties: it should be capable to allocate free memory and free allocated memory, write to allocated memory and read the last value written, etc., and it should not be possible to free memory that is already free, allocate memory that is already allocated, read values that have not been written, etc. Once we introduce memory algorithm, in fact, we can partially weaken the proof of these properties like writes and reads because these operations will be handled by the threads who requests memory services. Next, for the memory algorithm itself and memory blocks structure, we have to try to answer these questions: Can the memory algorithm pick out a appropriate block from the memory pools by searching or other auxiliary operations, such as cracking large blocks? Can the algorithm return the released block to the memory pools and adjust the free memory blocks, for example, to merge for expecting larger block requirements later? Dose the memory management algorithm correctly schedule the threads requesting the memory services, including blocking threads that do not get memory blocks and waking up threads in the wait queue. Can the memory pool be managed correctly at all times, such as free blocks and allocated blocks are distinguished, and memory blocks are unique? Dose the algorithm satisfy some security properties, such as memory services non-interference? These questions constitute a challenge to validating a memory management algorithm or system. Our work is to answer the questions above.
+here is related work.
 
-Our work is related to the actual requirements and applications of Zephyr OS in industry. Zephyr OS is a real-time operating system that supports the Internet of Things under the Linux Foundation and the demand for our work is exactly what this OS used in the communication system of high-speed trains. Among all the subsystems in Zephyr OS, the memory management system with concrete algorithm is the first module we must ensure correctness and security. Different from Linux, Zephyr OS adopts quadruple to allocate and reclaim memory blocks for efficiency reasons. This memory algorithm supports multi-threads shared accessing and interrupt locks. Due to the quadruple, the structure of memory block with multi-level bitmaps and multi-level doubly linked lists becomes quite complex. Because of this, our verification to this memory management system and its buddy memory algorithm will have substantial implications for the application of Zephyr OS in industry.
+In this paper, we propose a buddy allocation model, which supports both functional correctness and security. To achieve this goal, we develop a specification for buddy allocation algorithms by functional programming in Isabelle/HOL proof assistant. Our specification must consists of algorithm details as specific as possible for the sake of capturing any feature in the algorithms. Then we design a series of properties for functional correctness of the algorithm. After that, we apply theorem-proving method to prove these properties. To verify integrity for security, we construct execution traces based on event, and then prove that the operation of one domain on memory does not affect any other domains. So far, we have completed the construction and verification of the buddy allocation algorithm.
 
-In this paper, we develop a specification for a sequential memory model that concludes allocation, free and scheduling operations with buddy memory algorithm. We offer a set of axioms that provide enough information to reason about the correctness of functional algorithm under a event-based framework. We also provide an interface for upper programs for 
-verifying the noninterference security property. All definitions and proofs have been formalized in Isabelle/HOL proof assistant.
+The following section briefly introduces the Isabelle/HOL verification environment. The next section is about the formalization of buddy allocation model including representation of our specification and proofs to properties for functional correctness. The verification of integrity for security is arranged in the following section. The last section is about the conclusions and future work.
 
 
 \section{Isabelle/HOL Verification Environment}
-The verification environment which is based on the interactive theorem prover Isabella/HOL is also a key component to our work. HOL represents the Higher-Order Logical and Isabelle is its generic interactive theorem prover. In Isabelle/HOL, it is usual to employ functional programming method to define a function and to adopt theorem proving technique to reason a lemma or a theorem. For a gentle introduction to Isabelle/HOL see~\cite{reg_Isabelle/HOL}. 
+Our specification and verification work is based on the interactive theorem prover Isabella/HOL. HOL represents the Higher-Order Logical and Isabelle is its generic interactive theorem prover. In Isabelle/HOL, it is usual to employ functional programming method to define a function and to adopt theorem proving technique to reason a lemma or a theorem. For a gentle introduction to Isabelle/HOL see~\cite{reg_Isabelle/HOL}. 
 
 Apart from commonly used types like \textsl{bool} and \textsl{nat}, Isabelle offers notion \textsl{datatype} to create a distinguished element to some existing types. Projection functions \textsl{fst} and \textsl{snd} comes with the tuple (\textsl{$t_1$} $\times$ \textsl{$t_2$}). Notions \textsl{list} and \textsl{set} are used as constructors to create a collection of same type. Operation 'cons' denoted by '$\#$' on a list means that adding an element to the head of list. The \textsl{i}th component of a list \textsl{xs} is written as \textsl{xs}!\textsl{i}. \textsl{SOME x} and \textsl{THE x} in the \textsl{set A} represent choosing an element arbitrarily, existing and unique element respectively. Furthermore, $\lambda$-abstractions are also contained in terms like $\lambda$(\textsl{x, y}). \textsl{f x y}.
 
-Non-recursive definition can be made with the \textbf{definition} command adn the \textbf{primrec} function definition is used for primitive recursions. The notation $\lbrack$ $A_1$;\dots;$A_n$$\rbrack$ $\Longrightarrow$ A represents an implication with assumptions $A_1$;\dots;$A_n$ and conclusion A. Isabelle mainly employs backward deduction, which means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. It uses the rules of the reasoning like introduction, elimination, destruction rules, etc., as well as automatic provers such as \textsl{SMT}.
+Non-recursive definition can be made with the \textbf{definition} command and the \textbf{primrec} function definition is used for primitive recursions. The notation $\lbrack$ $A_1$;\dots;$A_n$$\rbrack$ $\Longrightarrow$ A represents an implication with assumptions $A_1$;\dots;$A_n$ and conclusion A. Isabelle mainly employs backward deduction, which means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. It uses the rules of the reasoning like introduction, elimination, destruction rules, etc., as well as automatic provers such as \textsl{SMT}.
 
 
-\section{Formalization of Buddy Memory Model}
-The most striking feature of the buddy memory allocation algorithm is layering: A large memory block is divided into four, then \textsl{n}-layer and \textsl{n+1}-layer are formed according to the size of the memory block; Multi-level doubly linked lists are used to manage free memory blocks scattered at various levels. Obviously, according to the first point in the above features, the memory structure can be implemented by a quad-tree. At the same time, the state tags of the leafs in this quad-tree can simulate the free and occupied memory blocks. Once we realize the core of the buddy memory allocation algorithm, it is easy to understand what the algorithm says.
+\section{Formalization of Buddy Allocation Model}
+The formalization of buddy allocation models consists of a specification for algorithms and proofs to properties for functional correctness. The challenge is that we apply quartering from Zephyr OS for buddy allocation operations, which brings complexity to proofs.
 
-When a reasonable memory block request comes in, the algorithm will look for a free memory block that contains the most suitable size on the corresponding free doubly linked list. If the
-appropriate memory block can be found directly, it is then allocated to the requesting thread. The splitting operation to a larger free memory block makes the algorithm become complicated when none of suitable memory block exists. The complex process is like this: a larger memory block is taken from the upper layer free list and cracked until the requested memory block is produced, meanwhile, free blocks not used in this cracking process are added to the corresponding hierarchy of free lists, in the end, the requested memory block can be allocated to the thread. The algorithm has to make sure two \textsl{suitable}: the free memory block to be allocated must be bigger than the requested memory block, but the smallest one among all suitable memory blocks; the free memory block to be cracked also must be the smallest among all suitable memory blocks. These two points further reduce the in-block and out-block fragments.
+\subsection{Memory Model Specification}
+The specification begins with the fundamental structure of a quad-tree.
+\begin{align*}
+(set:\ 'a)\ tree = &Leaf\ (L:\ 'a)\ | \\
+&Node\ (LL:\ 'a\ tree)\ (LR:\ 'a\ tree)\ (RL:\ 'a\ tree)\ (RR:\ 'a\ tree) \\
+&for\ map: tree\_map
+\end{align*}
+The quad-tree constructed by induction contains two pieces of information: the memory block state (indicated as \textsl{ALLOC} and \textsl{FREE} respectively); a address tag occupied by a memory block (indicated as \textsl{ID}). The mapping function \textbf{set} assists to collect the leaves from a tree. With the help of the block state and the function \textbf{get\_level}, allocated leaves or free leaves from different levels can be gathered by \textbf{allocsets}, \textbf{freesets} and \textbf{freesets\_level}. To create a new leaf, we have to pick up a new \textsl{ID} to this new leaf by the strategy of \textsl{SOME p. p} $\notin$ \textsl{idset}. Later, we will prove that with this strategy, all leaves have different \textsl{IDs}.
 
-The releasing process on allocated memory block could be easy except the additional merge operation. The first step is that the allocated memory block will be returned to corresponding hierarchy of free list. Then if there are four free sub-blocks and they all belong to a larger memory block, these free memory blocks will be merged into a larger memory block. The process is repeated until the entire block of memory can no longer be merged. This progress is called merge operation. The merge operation is reasonable and necessary for the considering of reducing debris and providing adequate resources.
+Based on the above quad-tree structure, next we specify two operations with the buddy algorithms: \textbf{alloc} and \textbf{free}. For \textsl{rsize} (the size of requested memory block) in allocation operation, there is a definition that maps it to the level of the quad-tree and gives the most suitable level \textsl{rlv}. The concept of \textsl{most suitable level} will be proved in the next subsection. For the specification, we only use level for both the memory blocks of the quad-tree and requested memory block. And the smaller the level, the larger size the memory block.
 
-But how to connect the allocation operation and releasing operation? The answer is the scheduling. According to the C-code level in Zepyhr OS, two places need the participation of scheduling: (1).Once the memory allocation process fails and one of the thread's parameters indicates that it will wait, we need to add the thread to the corresponding memory pool's waiting queue and then schedule another thread to run. (2).Each time after the releasing operation, the algorithm checks if there are any threads in the waiting queue of the memory pool. If there are, it wakes up all threads and scheduler arranges for one thread to execute. Although scheduling operation is not the primary role in memory algorithm verification, for algorithmic integrity, we introduce an abstract scheduling which takes any thread from the ready queue to our buddy memory model.
+\begin{definition} {exists\_freelevel} \\
+exists\_freelevel blo\_set lv $\equiv$ $\exists$l. l $\leq$ lv $\wedge$ $\exists$b $\in$ blo\_set. freesets\_level b l $\ne$ $\emptyset$
+\end{definition}
 
-Base on the cognition to the buddy memory algorithm above, we design the fundamental structure of a quad-tree: \textsl{'a tree} = \textsl{Leaf} (\textsl{L: 'a}) $\mid$ \textsl{Node} (\textsl{LL: 'a tree}) (\textsl{LR: 'a tree}) (\textsl{RL: 'a tree}) (\textsl{RR: 'a tree}), with two pieces of information carried by the leaf: memory blocks' state (indicated as \textsl{ALLOC} and \textsl{FREE} respectively); a contiguous address occupied by a memory block (indicated as \textsl{ID}). We begin with three operations with certain algorithms mentioned above: \textbf{alloc}, \textbf{free}, \textbf{schedule}. In addition, we introduce some auxiliary variables and definitions to our model, such as abstract \textsl{Thread} that contains the running states; simplified collection of resources \textsl{State} that simulates every running state of the whole system; sequential linked list \textsl{execution} that represents the executive processes and etc,. 
+\begin{definition} {freesets\_maxlevel}\\
+freesets\_maxlevel blo\_set lv $\equiv$ \\
+\phantom{x} \hspace{10pt} THE lmax. lmax $\leq$ lv $\wedge$ \\
+\phantom{x} \hspace{60pt} $\exists$b $\in$ blo\_set. freesets\_level b lmax $\neq$ $\emptyset$ $\wedge$ \\
+\phantom{x} \hspace{60pt} $\forall$l $\leq$ lv. $\exists$b $\in$ blo\_set. freesets\_level b l $\ne$ $\emptyset$ $\longrightarrow$ l $\leq$ lmax
+\end{definition}
 
-Our goal is to offer a simple specification of buddy memory algorithm such that: \\
-\phantom{x} 1. The specification must be consistent with the implementation detail of the buddy memory algorithm in Zephyr OS's memory management system, which means we need to use the theory proof method to prove that we have built a correct model. \\
-\phantom{x} 2. We need to verify whether the specification has relevant security properties, so that the algorithm can be guaranteed in the actual application process. \\
-\phantom{x} 3. From the perspective of algorithm, it is necessary to analyze the complexity in order to provide improvement advice for industrial products.
+\begin{definition} {Allocation Operation} \\
+alloc blo\_set rlv $\equiv$ \\
+\phantom{x} \hspace{10pt} if exists\_freelevel blo\_set rlv then \\
+\phantom{x} \hspace{20pt} lmax = freesets\_maxlevel blo\_set rlv \\
+\phantom{x} \hspace{20pt} if lmax = rlv then \\
+\phantom{x} \hspace{30pt} btree = SOME b. b $\in$ blo\_set $\wedge$ freesets\_level b rlv $\ne$ $\emptyset$ \\
+\phantom{x} \hspace{30pt} l = SOME l. l $\in$ freesets\_level btree rlv \\
+\phantom{x} \hspace{20pt} else \\
+\phantom{x} \hspace{30pt} btree = SOME b. b $\in$ blo\_set $\wedge$ freesets\_level b lmax $\ne$ $\emptyset$ \\
+\phantom{x} \hspace{30pt} l = split (SOME l. l $\in$ freesets\_level btree lmax) (rlv - lmax) \\
+\phantom{x} \hspace{10pt} else False
+\end{definition}
+
+The first step of allocation is to check whether there is a quad-tree in \textsl{blo\_set} (the memory pool tree collection), that has such free memory blocks whose level is less than or equal to \textsl{rlv}. This step is done by \textbf{exists\_freelevel}, and if it returns \textsl{False} then the allocation progress stops. Otherwise, the next step conducted by \textbf{freesets\_maxlevel} is to return the maximum level among all levels with free memory blocks. If the maximum level is equal to \textsl{rlv}, then any free memory block in \textsl{rlv} is to be allocated. If not, any free memory block in the maximum level is to be conducted by \textbf{split} showed in Fig. \ref{fig1} until free memory block in \textsl{rlv} appears and then be allocated. The state of the assigned leaf is set to \textsl{ALLOC}.
+
+\begin{figure}
+\centering
+\includegraphics[width=1\textwidth]{fig1.pdf}
+\caption{The progress of dividing a free memory block}
+\label{fig1}
+\end{figure}
+
+\begin{definition} {Deallocation Operation} \\
+free blo\_set b $\equiv$ \\
+\phantom{x} \hspace{10pt} if $\exists$btree $\in$ blo\_set. b $\in$ tree.set btree then \\
+\phantom{x} \hspace{20pt} if State b = FREE then False \\
+\phantom{x} \hspace{20pt} else btree = THE t. t $\in$ blo\_set $\wedge$ b $\in$ tree.set t \\
+\phantom{x} \hspace{40pt} merge (reset btree b FREE) \\
+\phantom{x} \hspace{10pt} else False
+\end{definition}
+
+The deallocation progress firstly checks whether there is a quad-tree in \textsl{blo\_set} that the occupied memory block to be released belongs to this tree. If there is no such tree, the procedure returns \textsl{False}. Next, if the state of the occupied memory block is \textsl{FREE}, the progress also returns \textsl{False}. When all conditions are met, the memory block is returned to the tree it belongs to, thereafter merging operation is executed. The merging operation is to combine all free memory blocks that belong to the same parent tree showed in Fig. \ref{fig2}.
+
+\begin{figure}
+\centering
+\includegraphics[width=1\textwidth]{fig2.pdf}
+\caption{The progress of merging all free memory blocks}
+\label{fig2}
+\end{figure}
+
+At this point, we have done the specification for the buddy memory algorithm. Next, we are going to verify some properties to guarantee the functional correctness of this specification.
 
 
-\subsection{Memory Model Axioms}
-The most basic guarantee for a model which is designed according to some algorithm, is that this model meets the functional requirements of the algorithm. The common method to prove functional correctness is to use preconditions and postconditions. Before designing these conditions, we explain a few auxiliary concepts and functions: The \textbf{level} used in the quad-tree is mapped to the size of memory block. For example, root node's level is zero and its size is 1024MB, then the next level of this tree is one, and they're 256MB in size. Function \textbf{exists\_freelevel} tells us if there is any memory block whose size is greater than or equal to the requested block size. Function \textbf{freesets\_maxlevel} gives us some memory block which is the smallest one among all blocks whose size are greater than or equal to the requested block size. Then we give preconditions and postconditions for functional correctness like this:
+\subsection{Memory Model Properties}
+Once the specification is finished, the preconditions $\&$ postconditions for functions as well as the invariants are to be raised up to ensure the functional correctness of the specification. We try to answer these questions: Dose the algorithm pick out the most suitable block from all the available blocks? Does the algorithm correctly adjust the state of the relevant memory block after allocation and deallocation? How the algorithm make sure to execute the merging operation after deallocation? How the specification ensure the correctness of the quad-tree structure? What invariants does the specification preserve? Dose the algorithm satisfy some security properties? Answering these questions contributes to the construction of a reliability system. We give preconditions and postconditions in the first place.
 
 \begin{definition} {Preconditions $\&$ Postconditions} \\
 When call allocation, if \textbf{exists\_freelevel} returns false, then allocation fails; \\
@@ -168,7 +219,7 @@ With lemma 3 and theorem 6, we can ensure that all memory blocks are in use and 
 To sum up, in this section we introduce the N-tree structure to simulate memory because of the buddy operation methods. Then we give a specification of the algorithm including \textbf{alloc}, \textbf{free} and \textbf{schedule}. After that, we give axiomatic proof for functional correctness including preconditions and postconditions, the most suitable allocated size, invariants during execution, memory isolation and non-leakage. Through these specifications and proof, we guarantee to give a functionally correct buddy memory model, which is significant to the next security model.
 
 
-\section{Security Model of Memory}
+\section{Model Memory Security}
 The concept of noninterference is introduced in~\cite{reg_noninterference} to provide a formalism for the specification fo security policies. The main idea is that domain \textsl{u} is non-interfering with domain \textsl{v} if no action performed by \textsl{u} can influence the subsequence outputs seen by \textsl{v}.
 
 \subsection{Memory Execution Model}
@@ -196,11 +247,10 @@ Thereafter, we have to define a reachable set using the execution trace. The pur
 \phantom{x} \hspace{3pt} \textbf{definition} "\textsl{reachable0 s} $\equiv$ \textsl{reachable s0 s}" \\
 \phantom{x} \hspace{3pt} \textbf{definition} "\textsl{ReachStates} $\equiv$ $\lbrace$\textsl{s}. \textsl{reachable0 s}$\rbrace$"
 
+But how to connect the allocation operation and releasing operation? The answer is the scheduling. According to the C-code level in Zepyhr OS, two places need the participation of scheduling: (1).Once the memory allocation process fails and one of the thread's parameters indicates that it will wait, we need to add the thread to the corresponding memory pool's waiting queue and then schedule another thread to run. (2).Each time after the releasing operation, the algorithm checks if there are any threads in the waiting queue of the memory pool. If there are, it wakes up all threads and scheduler arranges for one thread to execute. Although scheduling operation is not the primary role in memory algorithm verification, for algorithmic integrity, we introduce an abstract scheduling which takes any thread from the ready queue to our buddy memory model.
+
 
 \subsection{Security Proofs}
-
-
-\section{Related Work}
 
 
 \section{Conclusions and Future Work}
