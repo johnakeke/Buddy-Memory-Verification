@@ -60,7 +60,7 @@ Non-recursive definition can be made with the \textbf{definition} command and th
 The formalization of buddy allocation models consists of a specification for algorithms and proofs to properties for functional correctness. The challenge is that we apply quartering from Zephyr OS for buddy allocation operations, which brings complexity to proofs.
 
 \subsection{Memory Model Specification}
-The specification begins with the fundamental structure of a quad-tree.
+The specification begins with the structure of a quad-tree.
 \begin{align*}
 (set:\ 'a)\ tree = &Leaf\ (L:\ 'a)\ | \\
 &Node\ (LL:\ 'a\ tree)\ (LR:\ 'a\ tree)\ (RL:\ 'a\ tree)\ (RR:\ 'a\ tree) \\
@@ -125,106 +125,166 @@ At this point, we have done the specification for the buddy memory algorithm. Ne
 
 
 \subsection{Memory Model Properties}
-Once the specification is finished, the preconditions $\&$ postconditions for functions as well as the invariants are to be raised up to ensure the functional correctness of the specification. We try to answer these questions: Dose the algorithm pick out the most suitable block from all the available blocks? Does the algorithm correctly adjust the state of the relevant memory block after allocation and deallocation? How the algorithm make sure to execute the merging operation after deallocation? How the specification ensure the correctness of the quad-tree structure? What invariants does the specification preserve? Dose the algorithm satisfy some security properties? Answering these questions contributes to the construction of a reliability system. We give preconditions and postconditions in the first place.
+Once the specification is finished, the preconditions $\&$ postconditions for functions as well as the invariants are to be raised up to ensure the functional correctness of the specification. We try to answer these questions: Does the algorithm pick out the most suitable block from all the available blocks? Does the algorithm correctly adjust the state of the relevant memory block after allocation and deallocation? How does the algorithm make sure to execute the merging operation after deallocation? How does the specification ensure the correctness of the quad-tree structure? What invariants does the specification preserve? Does the algorithm satisfy some security properties? Answering these questions contributes to the construction of a reliability system. We give preconditions and postconditions in the first place.
 
-\begin{definition} {Preconditions $\&$ Postconditions} \\
-$\neg$ exists\_freelevel blo\_set rlv $\longrightarrow$ fst (alloc blo\_set rlv) = blo\_set $\bigwedge$ \\
+\begin{definition} {Allocation Failure} \\
+$\neg$ exists\_freelevel blo\_set rlv $\longrightarrow$ fst (alloc blo\_set rlv) = blo\_set
+\end{definition}
+
+\begin{definition} {Freesets for Direct Allocation} \\
 exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv = rlv $\longrightarrow$ \\
 \phantom{x} \hspace{10pt} $\exists$l. l $\in$ freesets blo\_set $\wedge$ l $\notin$ freesets fst (alloc blo\_set rlv) $\wedge$ \\
-\phantom{x} \hspace{10pt} freesets blo\_set = freesets fst (alloc blo\_set rlv) $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
+\phantom{x} \hspace{10pt} freesets blo\_set = freesets fst (alloc blo\_set rlv) $\cup$ $\lbrace$l$\rbrace$
+\end{definition}
+
+\begin{definition} {Allocsets for Direct Allocation} \\
 exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv = rlv $\longrightarrow$ \\
 \phantom{x} \hspace{10pt} $\exists$l. l $\notin$ allocsets blo\_set $\wedge$ l $\in$ allocsets fst (alloc blo\_set rlv) $\wedge$ \\
-\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
+\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$
+\end{definition}
+
+\begin{definition} {Allocsets for Indirect Allocation} \\
 exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv $\neq$ rlv $\longrightarrow$ \\
 \phantom{x} \hspace{10pt} $\exists$l. l $\notin$ allocsets blo\_set $\wedge$ l $\in$ allocsets fst (alloc blo\_set rlv) $\wedge$ \\
-\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
-$\nexists$btree $\in$ blo\_set. b $\in$ tree.set btree $\longrightarrow$ fst (free blo\_set b) = blo\_set $\bigwedge$ \\
+\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$
+\end{definition}
+
+\begin{definition} {Deallocation failure 1} \\
+$\nexists$btree $\in$ blo\_set. b $\in$ tree.set btree $\longrightarrow$ fst (free blo\_set b) = blo\_set
+\end{definition}
+
+\begin{definition} {Deallocation failure 2} \\
 $\exists$btree $\in$ blo\_set. b $\in$ tree.set btree $\wedge$ State b = FREE $\longrightarrow$ \\
-\phantom{x} \hspace{10pt} fst (free blo\_set b) = blo\_set $\bigwedge$ \\
+\phantom{x} \hspace{10pt} fst (free blo\_set b) = blo\_set
+\end{definition}
+
+\begin{definition} {Allocsets for Deallocation Success} \\
 $\exists$btree $\in$ blo\_set. b $\in$ tree.set btree $\wedge$ State b $\neq$ FREE $\longrightarrow$ \\
 \phantom{x} \hspace{10pt} allocsets blo\_set = allocsets fst (free blo\_set b) $\cup$ $\lbrace$b$\rbrace$
 \end{definition}
 
 \begin{theorem}
-The buddy allocation specification satisfies the preconditions and postconditions.
+The buddy allocation specification satisfies all the preconditions and postconditions above.
 \end{theorem}
 
-These conditions are very simple because of the functional construction of the model. They are also very easy to understand and do not require additional explanation. These conditions only ensure that the buddy model follows the design idea of the algorithm on the execution branches. However, they do not involve the design details inside the model. In other words, we need more invariants to ensure that the internal details of the model follow the design idea of the algorithm.
+\begin{proof}
+Apply preconditions into the definitions of allocation and deallocation, then the certain result of executions can be calculated according to the branches in the functions. The variables that change can be traced through state changes.
+\end{proof}
 
-To make sure that we execute \textbf{alloc} and \textbf{free} on the right level of quad tree, we have to specify that the level of root is zero and the level of below leaf is one more level than the upper leaf. Thus, we introduce the following lemma.
+To guarantee that the algorithm pocks out the most suitable block, two properties have to be proved: 1. the correctness of the mapping from the request memory block size to the level of the quad-tree. 2. the correctness of the quad-tree structure. Next are these two properties.
 
-\begin{lemma}
-	The level of root is zero and the level of below leaf is one more level than the upper leaf.
-\end{lemma}
-
-Then the question is that whether we choose a most suitable memory block for allocation. As we mentioned earlier, there is a mapping between the quad-tree hierarchy and the size of memory block. If we use static linked list \textsl{blo\_list} to store block size at each level, we have the following mapping definition:
-
-\begin{definition} {Mapping Sizes $\&$ Levels} \\
-output\_level = THE l. l $<$ length blo\_list $\wedge$ request\_size $\le$ blo\_list ! l $\wedge$ (length blo\_list $>$ 1 $\wedge$ l $<$ length blo\_list - 1) $\longrightarrow$ request\_size $>$ length blo\_list ! (l+1)
+\begin{definition} {Mapping Request Sizes $\&$ Allocation Levels} \\
+output\_level blo\_list rsize $\equiv$ THE l. l $<$ L blo\_list $\wedge$ rsize $\le$ blo\_list ! l $\wedge$ \\
+\phantom{x} \hspace{10pt} (L blo\_list $>$ 1 $\wedge$ l $<$ L blo\_list - 1) $\longrightarrow$ rsize $>$ L blo\_list ! (l+1)
 \end{definition}
 
-We use \textsl{blo\_list} of listing structure to record the mapping relation between request block size and quad tree's level. Due to the listing structure, quad tree's level can be expressed by the index of this list. Definition 2 gives us a function that how to get a suitable layer to allocate with the \textsl{blo\_list}. A suitable layer means that the block size it represents has to be greater than or equal to the request block size, and there is no layer below it that meets the size condition. We indicate that any request block size which is greater than the first layer's size is not allowed because we handle this condition as an exception.
+Static linked list \textsl{blo\_list} is used to store the size of block for each level in a quad-tree. And \textsl{blo\_list} is a strictly decreasing list. Function \textsl{L} is used to get the length of a list. As mentioned above, the smaller the level, the larger size the memory block. The most suitable block means that its size has to be greater than or equal to the size of request block, and there is no smaller block that meets this condition. Through this definition, the most suitable block is picked up from \textsl{blo\_list}, and then mapped to the correct level of the quad-tree. Some lemmas ensure the correctness of this definition.
+
+\begin{lemma}
+L blo\_list $>$ 0 $\wedge$ rsize $\leq$ blo\_list ! (L blo\_list - 1) $\longrightarrow$ output\_level blo\_list rsize = L blo\_list - 1
+\end{lemma}
+
+\begin{lemma}
+L blo\_list $>$ 1 $\wedge$ l $<$ L blo\_list - 1 $\wedge$ rsize $\leq$ blo\_list ! l $\wedge$ rsize $>$ blo\_list ! (l + 1) $\longrightarrow$ output\_level blo\_list rsize = l
+\end{lemma}
+
+\begin{proof}
+To prove these two lemmas, the existence of such a level should be prove firstly by the predicates of rsize. Then with the assistance of the strictly decreasing blo\_list, the exact level can be located.
+\end{proof}
+
+Next, we introduce a lemma alone to prove the correctness of a quad-tree structure from the aspect of its level. The below \textbf{root} checks whether the tree is a root tree and \textbf{child} gives us all immediate child nodes.
+
+\begin{lemma}
+(root btree $\longrightarrow$ get\_level btree = 0) $\wedge$ (get\_level btree = l $\wedge$ l $\geq$ 0 $\wedge$ $\forall$chtree $\in$ child btree $\longrightarrow$ get\_level chtree = l + 1)
+\end{lemma}
+
+\begin{proof}
+Induction can prove this because of the recursive structure of the quad-tree.
+\end{proof}
+
+With the correctness of the mapping operation and the structure of a quad-tree, we have the following theorem.
 
 \begin{theorem}
-Any request block whose size is smaller than or equal to the first layer's size can be mapped to such a suitable quad tree level.
+The buddy allocation specification picks out the most suitable memory block and operates on the correct level in the quad-tree.
 \end{theorem}
 
-Now, with lemma 1 and theorem 2, we can make sure that any operation on block size can be executed correctly on the right level of quad tree.
+To avoid the fragmentation, merging operation is asked in the progress of deallocation. The following property is put forward to ensure the merging operation being correctly executed. The below \textbf{leaf} is to check whether the tree is a leaf.
 
-Another question in the memory allocation algorithm is the fragmentation. Many reasons are responsible to this phenomenon. In this case, definition 2 which maps block size to relevant quad tree level and the \textsl{blo\_list} eliminate internal fragmentation. We believe that external fragmentation in buddy memory allocation algorithm is caused by the fact that all free leaves from the same level and belong to the same root tree are not merged into the upper leaf after the release operation. According to the algorithm, this situation should not be allowed. Thus, we design the following theorem to ensure the external fragmentation in-existence.
-
-\begin{theorem}
-There is not existence of such circumstance that all leaves from the same level and belong to the same root tree are FREE.
-\end{theorem}
-
-This theorem is relative to a sub-operation in \textbf{free}, merge operation. Merge operation is important to handling the external fragmentation. The core service in the merge operation is to check whether the memory block to be released with all other leaves forms the situation that all leaves from the same level and belong to the same root are \textsl{FREE}. If this happens, then merge operation has to combine these leaves into an upper leaf. The merge operation is a inductive progress until there is not existence of such nodes and leaves. Theorem 3 guarantees that merge operation has been done at every time and got the correct result.
-
-According to the facts that: (1)the status of a running thread is \textsl{RUNNING}; (2)the status of any thread in waiting queue is \textsl{BLOCKED}. This theorem guarantees the correctness of a thread's status before and after each operation. The theorem is as follows.
-
-\begin{theorem}
-(\textsl{current\_thread} $\neq$ \textsl{nil} $\longrightarrow$ \textsl{Status} (\textsl{current\_thread}) = \textsl{RUNNING}) $\wedge$ (\textsl{waiting\_queue} $\neq$ $\lbrace$$\rbrace$ $\wedge$ \textsl{t} $\in$ \textsl{waiting\_queue} $\longrightarrow$ \textsl{Status} (\textsl{t}) = \textsl{BLOCKED})
-\end{theorem}
-
-Above the \textsl{alloc}, \textsl{free} and \textsl{schedule} operations layer, we add the concept of thread to simulate the real situation of the whole memory management system. No matter which operation a thread invokes and what the results it gets, the only thing we need to make sure is that the thread state is correct. Thus theorem 4 guarantees this very well.
-
-In the end, we turn to two significant properties: isolation and non-leakage. Memory isolation means that any two blocks of memory will not overlap at the address. In the event of an overlap in the address, incorrect information will directly cause confusion and errors in the program, as well as serious consequences. Memory leakage means that available memory blocks (including allocated memory blocks and unallocated memory blocks) are getting less and less. In the case of program security, some malicious programs modify the size of available memory to achieve the purpose of attacking.
-
-Before revealing this two properties, we introduce a concept of \textsl{ID} to represent the address range of a memory block and a lemma to maintain the relation between \textsl{ID} and address range.
-
-\begin{definition} {Mapping IDs $\&$ Addresses} \\
-The root tree addresses from root\_address\_start to root\_address\_end, the leaf $\alpha$ with ID is one of child leaves of root tree whose index is leaf\_index. \\
-Then there is a mapping that ID represents the following range of address: \\
-$\alpha$\_address\_start = root\_address\_start + leaf\_index $\times$ $\frac{Size (root\_tree)}{n}$ \\
-$\alpha$\_address\_end = $\alpha$\_address\_start + $\frac{Size (root\_tree)}{n}$
+\begin{definition} {Four Free Leaves Belong to The Same Node} \\
+is\_FFL btree $\equiv$ $\forall$chtree $\in$ child btree. leaf chtree $\wedge$ State chtree = FREE
 \end{definition}
 
-With this definition, we have to guarantee the one-to-one mapping relation between the \textsl{ID} and the range of addresses. Then we have the following lemma to ensure this.
+Fig. \ref{fig2} can explain this definition well. Just like the subtree in the lower left corner of the first picture, four child nodes are all leaves and their states are \textsl{FREE}. Therefore, merging operation is necessary during the progress of deallocation to handle this situation. The following are the lemmas that ensure the non-existence of such \textsl{FFL} trees after allocation and deallocation operations if non-existence of such trees in preconditions.
 
 \begin{lemma}
-For any range of addresses in the memory pools, there is uniquely one ID of leaf in some Block tree corresponding to it.
+$\forall$b $\in$ blo\_set. $\neg$ is\_FFL b $\longrightarrow$ $\forall$b $\in$ fst (alloc blo\_set rlv). $\neg$ is\_FFL b
 \end{lemma}
-
-Then we adopted a series of strategies to produce such an \textsl{ID}. There is no overlap in memory addresses, which translates to all \textsl{ID}s being different.
-
-\begin{theorem}
-If Block tree $\alpha$ is such a tree whose all IDs of leaves are different, then after any operations, the new tree maintains this property.
-\end{theorem}
-
-With lemma 2 and theorem 5, we can say that all ranges of memory addresses are isolated and there is no overlap between them.
-
-Due to we use the structure of tree and we have mapped all the memory blocks into the leaves in these tree, it becomes easy to prove the non-leakage of memory. In a tree, we have this understanding: all the leaves including allocated and unallocated leaves are all in use. Thus once we prove the number relationship between the nodes and the leaves of the N-tree, we can say that all the leaves are in use and none leaf is forgotten.
 
 \begin{lemma}
-N-tree: Num (Leaf) = Num (Node) $\times$ n + 1
+$\forall$b $\in$ blo\_set. $\neg$ is\_FFL b $\longrightarrow$ $\forall$b $\in$ fst (free blo\_set b). $\neg$ is\_FFL b
 \end{lemma}
 
+\begin{proof}
+Due to the operations being conducted on the recursive structure of the quad-tree, induction can solve the proofs with the assistants of the execution branches.
+\end{proof}
+
 \begin{theorem}
-If Block tree $\beta$ is such a tree whose number of leaf and node has above relation, then after any operations, the new tree maintains this property.
+The buddy allocation specification guarantees non-existence of the FFL trees among all quad-trees.
 \end{theorem}
 
-With lemma 3 and theorem 6, we can ensure that all memory blocks are in use and none of them is forgotten or stolen.
+In the end, we prove two significant properties: memory isolation and non-leakage. The first one is to prove non-existence of the overlap in the address spaces. Isolation in address spaces makes sure domains' memory blocks are not maliciously overwritten. Memory leakage means that available memory blocks (including occupied and free blocks) are getting less and less. Then non-leakage protects the address spaces.
 
-To sum up, in this section we introduce the N-tree structure to simulate memory because of the buddy operation methods. Then we give a specification of the algorithm including \textbf{alloc}, \textbf{free} and \textbf{schedule}. After that, we give axiomatic proof for functional correctness including preconditions and postconditions, the most suitable allocated size, invariants during execution, memory isolation and non-leakage. Through these specifications and proof, we guarantee to give a functionally correct buddy memory model, which is significant to the next security model.
+For the specification level, we provisionally use \textsl{ID} to present a contiguous addresses for a memory block. The mapping between a \textsl{ID} and a true range of address and the one-to-one uniqueness guarantee will be introduced in the future work. Therefore, in this specification isolation in address spaces means that all \textsl{IDs} that leaves bring are different. The strategy of creating a new leaf has been already introduced in the previous subsection.
+
+\begin{definition} {Different IDs} \\
+is\_different blo\_set $\equiv$ $\forall$b $\in$ blo\_set. $\forall$l $\in$ tree.set b. ($\nexists$l'. l' $\in$ tree.set (SOME b. b $\in$ blo\_set) $\wedge$ l' $\ne$ l $\wedge$ ID l' = ID l)
+\end{definition}
+
+\begin{lemma}
+is\_different blo\_set $\longrightarrow$ is\_different fst (alloc blo\_set rlv)
+\end{lemma}
+
+\begin{lemma}
+is\_different blo\_set $\longrightarrow$ is\_different fst (free blo\_set b)
+\end{lemma}
+
+\begin{proof}
+Induction proving can solve these lemmas with the assistants of the execution branches, because the operations are conducted on the recursive structure of the quad-tree.
+\end{proof}
+
+\begin{theorem}
+The buddy allocation specification ensures all IDs of leaves are different.
+\end{theorem}
+
+For the memory non-leakage, because we use the quad-tree structure and map all the memory blocks into the leaves of the tree, it becomes easy to prove the property. Firstly, we have this understanding to a quad-tree: all the leaves (including occupied and free leaves) are in use. Thus once the certain relationship between the number of nodes and leaves has been proved, we can infer that the quad-tree always maintains correct structure. Hence,  we can prove that all the leaves are in use and none leaf is forgotten.
+
+The first step is to prove the relationship between the number of nodes and leaves in a quad-tree.
+
+\begin{lemma}
+q-tree b: Num (Leaf b) = Num (Node b) $\times$ 3 + 1
+\end{lemma}
+
+\begin{proof}
+We use induction  to prove this lemma because of the recursive structure of the quad-tree.
+\end{proof}
+
+\begin{lemma}
+$\forall$b $\in$ blo\_set. q-tree b $\longrightarrow$ $\forall$b $\in$ fst (alloc blo\_set rlv). q-tree b
+\end{lemma}
+
+\begin{lemma}
+$\forall$b $\in$ blo\_set. q-tree b $\longrightarrow$ $\forall$b $\in$ fst (free blo\_set b). q-tree b
+\end{lemma}
+
+\begin{proof}
+Due to the operations being conducted on the recursive structure of the quad-tree, induction can solve the proofs with the assistants of the execution branches.
+\end{proof}
+
+\begin{theorem}
+The buddy allocation specification guarantees any tree is a q-tree.
+\end{theorem}
+
+To sum up, in this section we introduce the quad-tree structure to simulate memory because of the buddy allocation algorithms. Then we give a specification for the algorithms including \textbf{alloc} and \textbf{free} operations. After that, we give proofs for functional correctness including preconditions and postconditions, the most suitable memory block, non-existence of the \textsl{FFL} trees, memory isolation and non-leakage. Through these efforts, we give a functionally correct buddy memory model.
 
 
 \section{Model Memory Security}
