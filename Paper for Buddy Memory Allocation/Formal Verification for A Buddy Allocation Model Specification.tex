@@ -128,17 +128,25 @@ At this point, we have done the specification for the buddy memory algorithm. Ne
 Once the specification is finished, the preconditions $\&$ postconditions for functions as well as the invariants are to be raised up to ensure the functional correctness of the specification. We try to answer these questions: Dose the algorithm pick out the most suitable block from all the available blocks? Does the algorithm correctly adjust the state of the relevant memory block after allocation and deallocation? How the algorithm make sure to execute the merging operation after deallocation? How the specification ensure the correctness of the quad-tree structure? What invariants does the specification preserve? Dose the algorithm satisfy some security properties? Answering these questions contributes to the construction of a reliability system. We give preconditions and postconditions in the first place.
 
 \begin{definition} {Preconditions $\&$ Postconditions} \\
-When call allocation, if \textbf{exists\_freelevel} returns false, then allocation fails; \\
-When call allocation, if \textbf{exists\_freelevel} returns true and \textbf{freesets\_maxlevel} returns exactly the level to be allocated, then directly allocate; \\
-When call allocation, if \textbf{exists\_freelevel} returns true and \textbf{freesets\_maxlevel} returns not the level to be allocated, then allocate through splitting; \\
-When call releasing, if the memory block to be freed dose not belong to this memory pool, then releasing fails; \\
-When call releasing, if the memory block to be free belongs to this memory pool, then free the block and merge; \\
-When allocation fails, if the thread will wait, then suspend this thread, insert it to the pool's waiting queue and schedule; \\
-When releasing succeeds, if the pool's waiting queue is not empty, then wake all suspended threads.
+$\neg$ exists\_freelevel blo\_set rlv $\longrightarrow$ fst (alloc blo\_set rlv) = blo\_set $\bigwedge$ \\
+exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv = rlv $\longrightarrow$ \\
+\phantom{x} \hspace{10pt} $\exists$l. l $\in$ freesets blo\_set $\wedge$ l $\notin$ freesets fst (alloc blo\_set rlv) $\wedge$ \\
+\phantom{x} \hspace{10pt} freesets blo\_set = freesets fst (alloc blo\_set rlv) $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
+exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv = rlv $\longrightarrow$ \\
+\phantom{x} \hspace{10pt} $\exists$l. l $\notin$ allocsets blo\_set $\wedge$ l $\in$ allocsets fst (alloc blo\_set rlv) $\wedge$ \\
+\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
+exists\_freelevel blo\_set rlv $\wedge$ freesets\_maxlevel blo\_set rlv $\neq$ rlv $\longrightarrow$ \\
+\phantom{x} \hspace{10pt} $\exists$l. l $\notin$ allocsets blo\_set $\wedge$ l $\in$ allocsets fst (alloc blo\_set rlv) $\wedge$ \\
+\phantom{x} \hspace{10pt} allocsets fst (alloc blo\_set rlv) = allocsets blo\_set $\cup$ $\lbrace$l$\rbrace$ $\bigwedge$ \\
+$\nexists$btree $\in$ blo\_set. b $\in$ tree.set btree $\longrightarrow$ fst (free blo\_set b) = blo\_set $\bigwedge$ \\
+$\exists$btree $\in$ blo\_set. b $\in$ tree.set btree $\wedge$ State b = FREE $\longrightarrow$ \\
+\phantom{x} \hspace{10pt} fst (free blo\_set b) = blo\_set $\bigwedge$ \\
+$\exists$btree $\in$ blo\_set. b $\in$ tree.set btree $\wedge$ State b $\neq$ FREE $\longrightarrow$ \\
+\phantom{x} \hspace{10pt} allocsets blo\_set = allocsets fst (free blo\_set b) $\cup$ $\lbrace$b$\rbrace$
 \end{definition}
 
 \begin{theorem}
-The buddy memory model satisfies the preconditions and postconditions.
+The buddy allocation specification satisfies the preconditions and postconditions.
 \end{theorem}
 
 These conditions are very simple because of the functional construction of the model. They are also very easy to understand and do not require additional explanation. These conditions only ensure that the buddy model follows the design idea of the algorithm on the execution branches. However, they do not involve the design details inside the model. In other words, we need more invariants to ensure that the internal details of the model follow the design idea of the algorithm.

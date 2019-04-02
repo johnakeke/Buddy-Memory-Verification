@@ -1,15 +1,12 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  1 APR 2019 17:34
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.7)  1 APR 2019 23:58
 entering extended mode
 **Formal*Verification*for*A*Buddy*Allocation*Model*Specification.tex
 
-("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.tex"
+("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\Formal Verificat
+ion for A Buddy Allocation Model Specification.tex"
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for loaded.
-
-("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\llncs.cls"
+("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\llncs.cls"
 Document Class: llncs 2018/03/10 v2.20 
  LaTeX document class for Lecture Notes in Computer Science
 (C:\CTEX\MiKTeX\tex\latex\base\article.cls
@@ -237,9 +234,8 @@ Package amsmath Warning: Unable to redefine math accent \vec.
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
 )
-("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.aux")
+("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\Formal Verificat
+ion for A Buddy Allocation Model Specification.aux")
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
 LaTeX Font Info:    ... okay on input line 5.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
@@ -252,7 +248,8 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
 LaTeX Font Info:    ... okay on input line 5.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
 LaTeX Font Info:    ... okay on input line 5.
- (C:\CTEX\MiKTeX\tex\context\base\supp-pdf.mkii
+
+(C:\CTEX\MiKTeX\tex\context\base\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count129
 \scratchdimen=\dimen135
@@ -296,25 +293,23 @@ Package pdftex.def Info: fig1.pdf used on input line 101.
 (pdftex.def)             Requested size: 347.12354pt x 92.19675pt.
 
 
-pdfTeX warning: pdflatex.exe (file C:/Users/jiangke/Documents/verification/Memo
-ry_Verification_Final_Version/Paper for Buddy Memory Allocation/fig2.pdf): PDF 
-inclusion: found PDF version <1.6>, but at most version <1.5> allowed
+pdfTeX warning: pdflatex.exe (file C:/Users/johnakeke/Desktop/Paper for Buddy M
+emory Allocation/fig2.pdf): PDF inclusion: found PDF version <1.6>, but at most
+ version <1.5> allowed
 <fig2.pdf, id=29, 630.78189pt x 169.21317pt>
 File: fig2.pdf Graphic file (type pdf)
  <use fig2.pdf>
 Package pdftex.def Info: fig2.pdf used on input line 119.
 (pdftex.def)             Requested size: 347.12354pt x 93.12173pt.
- [4 <C:/Users/jiangke/Documents/verification/Memory_Verification_Final_Version/
-Paper for Buddy Memory Allocation/fig1.pdf>] [5 <C:/Users/jiangke/Documents/ver
-ification/Memory_Verification_Final_Version/Paper for Buddy Memory Allocation/f
-ig2.pdf>] [6]
-[7]
-Underfull \hbox (badness 10000) in paragraph at lines 230--231
+ [4 <C:/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig1.pdf>] [5
+ <C:/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig2.pdf>] [6] [
+7]
+Underfull \hbox (badness 10000) in paragraph at lines 238--239
 
  []
 
 [8]
-Underfull \hbox (badness 10000) in paragraph at lines 234--241
+Underfull \hbox (badness 10000) in paragraph at lines 242--249
 
  []
 
@@ -323,35 +318,35 @@ Underfull \vbox (badness 3601) has occurred while \output is active []
 
  [9]
 [10]
-("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.aux") ) 
+("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\Formal Verificat
+ion for A Buddy Allocation Model Specification.aux") ) 
 Here is how much of TeX's memory you used:
- 2473 strings out of 495354
- 30563 string characters out of 3183859
+ 2471 strings out of 495354
+ 30116 string characters out of 3183859
  92023 words of memory out of 3000000
- 5614 multiletter control sequences out of 15000+200000
- 15884 words of font info for 59 fonts, out of 3000000 for 9000
+ 5613 multiletter control sequences out of 15000+200000
+ 15525 words of font info for 58 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
  29i,11n,24p,1006b,238s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb
-><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/CTEX/MiKTeX/font
-s/type1/public/amsfonts/cm/cmbx9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
-s/cm/cmbxti10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:
-/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6.pfb><C:/CTEX/MiKTeX/fonts/typ
-e1/public/amsfonts/cm/cmmi7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/
-cmmib10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/CTEX/M
-iKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/CTEX/MiKTeX/fonts/type1/publi
-c/amsfonts/cm/cmr7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb>
-<C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsl10.pfb><C:/CTEX/MiKTeX/fonts
-/type1/public/amsfonts/cm/cmsy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
-s/cm/cmsy7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/CTE
-X/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/CTEX/MiKTeX/fonts/type1/
-public/amsfonts/cm/cmtt9.pfb>
+<C:/CTEX/MiKTeX/fonts/typ
+e1/public/amsfonts/cm/cmbx10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm
+/cmbx12.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/CTEX/M
+iKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/CTEX/MiKTeX/fonts/type1/pub
+lic/amsfonts/cm/cmmi10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi6
+.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/CTEX/MiKTeX/f
+onts/type1/public/amsfonts/cm/cmmib10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/am
+sfonts/cm/cmr10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:
+/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/CTEX/MiKTeX/fonts/type
+1/public/amsfonts/cm/cmr9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+sl10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/CTEX/MiK
+TeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/CTEX/MiKTeX/fonts/type1/public
+/amsfonts/cm/cmsy9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pf
+b><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt9.pfb><C:/CTEX/MiKTeX/font
+s/type1/public/amsfonts/symbols/msbm10.pfb>
 Output written on "Formal Verification for A Buddy Allocation Model Specificati
-on.pdf" (10 pages, 648827 bytes).
+on.pdf" (10 pages, 649440 bytes).
 PDF statistics:
- 125 PDF objects out of 1000 (max. 8388607)
+ 129 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
