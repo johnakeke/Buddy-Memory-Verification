@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  3 APR 2019 17:42
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  4 APR 2019 17:29
 entering extended mode
 **Formal*Verification*for*A*Buddy*Allocation*Model*Specification.tex
 
@@ -313,7 +313,7 @@ Overfull \hbox (0.85205pt too wide) in paragraph at lines 216--217
 st suit-able mem-
  []
 
-[7] [8] [9] [10]
+[7] [8] [9] [10] [11] [12]
 ("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
 er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
  Specification.aux") ) 
@@ -341,9 +341,9 @@ MiKTeX/fonts/type1/public/amsfonts/cm/cmtt9.pfb><C:/CTEX/MiKTeX/fonts/type1/pub
 lic/amsfonts/symbols/msam10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/sym
 bols/msbm10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
 Output written on "Formal Verification for A Buddy Allocation Model Specificati
-on.pdf" (10 pages, 653410 bytes).
+on.pdf" (12 pages, 661474 bytes).
 PDF statistics:
- 133 PDF objects out of 1000 (max. 8388607)
+ 139 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
