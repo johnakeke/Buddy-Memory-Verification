@@ -300,7 +300,7 @@ To sum up, in this section we introduce the quad-tree structure to simulate memo
 
 
 \section{Security of Buddy Allocation Model}
-Integrity is the assurance that the information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this section, we try to prove the integrity property for buddy memory model. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. Next, we introduce interfaces into the buddy memory model, and package it into an event specification. We think of this event specification as an instantiated security model. The last step is to prove the instantiated model satisfy the integrity property.
+Integrity is the assurance that the information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this section, we try to prove the integrity property for buddy memory model. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. Next, we introduce interfaces into the buddy memory model, and package it into an event specification. We think of this event specification as an instantiated security model. The last step is to prove the instantiated model satisfy the integrity property.  This part of work is following ~\cite{reg_securitymodel}.
 
 \subsection{A Security Model}
 
@@ -362,9 +362,7 @@ scheduler $\equiv$ (Cur s = SOME p. p $\in$ par\_set)
 With these interfaces functions, we give the state-transition function \textbf{exec\_event(e)} as a instantiation of $\varphi$. Thus event \textsl{e} represents \textsl{alloc\_memory}, \textsl{free\_memory} and \textsl{scheduler}.
 
 \begin{definition} {State-transition} \\
-exec\_event e $\equiv$ $\lbrace$(s, s'). case e of alloc\_memory $\Rightarrow$ s' $\in$ $\lbrace$alloc\_memory s$\rbrace$ $\vert$ \\
-\phantom{x} \hspace{134pt} free\_memory $\Rightarrow$ s' $\in$ $\lbrace$free\_memory$\rbrace$ $\vert$ \\
-\phantom{x} \hspace{134pt} scheduler $\Rightarrow$ (s' = scheduler s)$\rbrace$
+exec\_event e $\equiv$ $\lbrace$(s, s'). s' $\in$ $\lbrace$(e s)$\rbrace$ $\wedge$ e $\in$ $\lbrace$alloc\_memory, free\_memory, scheduler$\rbrace$$\rbrace$
 \end{definition}
 
 Finally, we give the instantiation of integrity property we want to prove through the instantiations of $\interf$ and $\sim$. In this case, our goal is to prove that if the currently running domain is not interfering other domains, then the memory address spaces other domains owns maintain identical. Then we give the instantiations of $\interf$ and $\sim$ to achieve it.
@@ -407,7 +405,10 @@ $\forall$e $\in$ {alloc\_memory, free\_memory, scheduler}. IPC(e)
 In the end, we proved that the event specification based on the buddy allocation model satisfies the integrity property and is a security model. According to the instantiation of interfering, by the buddy allocation model, as long as the domain is not the scheduler, the execution of one domain will not influence the memory address spaces that other domains have. The security proofs above ensure that that memory information is trustworthy and accurate.
 
 \section{Conclusions and Future Work}
-To sum up, we give a specification for buddy allocation algorithm firstly. 
+To sum up, we apply formal methods to guarantee the absence of any misbehavior during the development process of buddy allocation model, the specification level in this paper. Our specification starts directly at the algorithm level, where our work is different from others'. By the proofs of satisfaction in preconditions and postconditions as well as invariants, we ensure the specification a functionally correct one. After that, we introduce the integrity property for the security assurance of buddy allocation model. To achieve this, we design a state-machine driven security model, which satisfies integrity property. By introducing interfaces to the buddy memory model as an event specification, we finally proved that the event specification based on our memory model satisfies the integrity property.
+
+Our memory model specification is currently abstract on address spaces, which are replaced by the concept of \textsl{ID} in a leaf. The mapping between a \textsl{ID} and a true range of address and the one-to-one uniqueness guarantee are arranged to the next more specific specification level. Another next step is to show our memory model specification by introducing the semantics of a language like \textsl{Simpl}. By refinement between the specification level and semantics language level, and automatic transition into implementation level, we try to offer C codes for our buddy allocation algorithms. Ultimately, we aim to offer reliable buddy memory codes to any operation systems that apply this kind of algorithms.
+
 
 \begin{thebibliography}{8}
 \bibitem{reg_Isabelle/HOL}
@@ -416,6 +417,8 @@ T. Nipkow, L. C. Paulson, and M. Wenzel. Isabelle/HOL-A Proof Assistant for High
 \bibitem{reg_noninterference}
 J. Goguen and J. Meseguer. Security Policies and Security Models, Proceedings of the IEEE Computer Society Symposium on Research in Security and Privacy, 1982, p. 11-20.
 
+\bibitem{reg_securitymodel}
+Y. Zhao, D. Sanan, F. Zhang, Y. Liu, Refinement-based Specification and Security Analysis of Separation Kernels, IEEE Transactions on Depandable and Secure Computing, Volume 16, Issue 1, January 2019, p. 127-141.
 
 \end{thebibliography}
 
