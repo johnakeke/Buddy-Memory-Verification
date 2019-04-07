@@ -49,7 +49,11 @@ Buddy allocation algorithms are widely adopted by memory management systems to m
 \section{Introduction}
 In the past several decades, buddy allocation algorithms have been applied in the memory management systems. Errors in any stage of the development process of the memory management component may lead to critical issues in other components who invoke it. To improve confidence on the reliability of the development process, verification of functional correctness and security properties is applied into each stage, from the specification level to the implementation level, even the machine code level. Formal methods have been successfully applied in the verification of many critical systems due to these methods provide strong assurance by rigorous mathematical proofs. Therefore, we apply formal methods to ensure the absence of any misbehavior during the development process of the buddy allocation model.
 
-here is related work.
+Many efforts have been put into the specification and verification of memory models. In the early cases, the memory model makes a set of operations available to programs and provides some guarantees on their behavior. These operations usually focus on reading and writing. The model built in~\cite{reg_higham} is such an example of formalizing memory models in terms of sequences of read and write events. Some of the later work even adds allocation and deallocation operations, but they are still abstract. 
+
+In some models that only have read and write events, the property to verify is sequential consistency~\cite{reg_higham}, where model must behave as if it has received an ordered sequence of read and write operations. Promising non-existence of covert channels in memory model to guarantee isolation is another Verifiable property as show in~\cite{reg_peter}. Paper~\cite{reg_rosu} proposes strong memory safety as the least restrictive formal definition of memory safety amenable for runtime verification.
+
+The way in some work~\cite{reg_blazy,reg_mansky} of validating a memory model has several steps: firstly to build an axiomatic system that contains abstract operations and assumed properties; Secondly to give a specification of this model with semantics languages; Last to prove that the specification satisfy the axiomatic system.
 
 In this paper, we propose a buddy allocation model, which supports both functional correctness and security. To achieve this goal, we develop a specification for buddy allocation algorithms by functional programming in Isabelle/HOL proof assistant. Our specification must consists of algorithm details as specific as possible for the sake of capturing any feature in the algorithms. Then we design a series of properties for functional correctness of the algorithm. After that, we apply theorem-proving method to prove these properties. To verify integrity for security, we construct execution traces based on event, and then prove that the operation of one domain on memory does not affect any other domains. So far, we have completed the construction and verification of the buddy allocation algorithm.
 
@@ -65,7 +69,7 @@ Non-recursive definition can be made with the \textbf{definition} command and th
 
 
 \section{Formalization of Buddy Allocation Model}
-The formalization of buddy allocation models consists of a specification for algorithms and proofs to properties for functional correctness. The challenge is that we apply quartering from Zephyr OS for buddy allocation operations, which brings complexity to proofs.
+The formalization of buddy allocation models consists of a specification for algorithms~\cite{reg_knowlton} and proofs to properties for functional correctness. The challenge is that we apply quartering from Zephyr OS for buddy allocation operations, which brings complexity to proofs.
 
 \subsection{Memory Model Specification}
 The specification begins with the structure of a quad-tree.
@@ -411,14 +415,33 @@ Our memory model specification is currently abstract on address spaces, which ar
 
 
 \begin{thebibliography}{8}
-\bibitem{reg_Isabelle/HOL}
-T. Nipkow, L. C. Paulson, and M. Wenzel. Isabelle/HOL-A Proof Assistant for Higher-Order Logical, volume 2283 of LNCS. Springer-Verlag, 2002.
+\bibitem{reg_rosu}
+G. Ro\c{s}u, W. Schulte, T.F. \c{S}erb\v{a}nu\c{t}\v{a}. Runtime Verification of C Memory Safety. International Workshop on Runtime Verification, 2009, p. 132-151.
 
 \bibitem{reg_noninterference}
 J. Goguen and J. Meseguer. Security Policies and Security Models, Proceedings of the IEEE Computer Society Symposium on Research in Security and Privacy, 1982, p. 11-20.
 
+\bibitem{reg_knowlton}
+K. C. Knowlton. A fast storage allocator, Commun. ACM, 1965, p. 623-624.
+
+\bibitem{reg_higham}
+L. Higham, J. Kawash, N. Verwaal. Defining and comparing memory consistency
+models, Proceedings of the 10th International Conference on Parallel and Distributed Computing Systems, 1997, p. 349–356.
+
+\bibitem{reg_peter}
+M. Peter, M. Petschick, J. Vetter, J. Nordholz, J. Danisevskis, JP. Seifert. Undermining Isolation Through Covert Channels in the Fiasco.OC Microkernel, Information Sciences and Systems, 2015, p. 147-156.
+
+\bibitem{reg_blazy}
+S. Blazy, X. Leroy. Formal Verification of a Memory Model for C-Like Imperative Languages, ICFEM: Formal Methods and Software Engineering, 2005, p. 280-299.
+
+\bibitem{reg_Isabelle/HOL}
+T. Nipkow, L. C. Paulson, and M. Wenzel. Isabelle/HOL-A Proof Assistant for Higher-Order Logical, volume 2283 of LNCS. Springer-Verlag, 2002.
+
+\bibitem{reg_mansky}
+W. Mansky, G. Dmitri, S. Zdancewic. An Axiomatic Specification for Sequential Memory Models, Computer Aided Verification, July 2015, p. 413-428.
+
 \bibitem{reg_securitymodel}
-Y. Zhao, D. Sanan, F. Zhang, Y. Liu, Refinement-based Specification and Security Analysis of Separation Kernels, IEEE Transactions on Depandable and Secure Computing, Volume 16, Issue 1, January 2019, p. 127-141.
+Y. Zhao, D. Sanan, F. Zhang, Y. Liu. Refinement-based Specification and Security Analysis of Separation Kernels, IEEE Transactions on Depandable and Secure Computing, Volume 16, Issue 1, January 2019, p. 127-141.
 
 \end{thebibliography}
 
