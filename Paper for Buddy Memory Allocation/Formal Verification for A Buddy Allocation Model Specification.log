@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.7)  7 APR 2019 22:40
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.10.7)  8 APR 2019 22:54
 entering extended mode
 **Formal*Verification*for*A*Buddy*Allocation*Model*Specification.tex
 
@@ -233,124 +233,143 @@ Package amsmath Warning: Unable to redefine math accent \vec.
 \mathdisplay@stack=\toks24
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
+) ("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\latexsym.sty"
+Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
+\symlasy=\mathgroup6
+LaTeX Font Info:    Overwriting symbol font `lasy' in version `bold'
+(Font)                  U/lasy/m/n --> U/lasy/b/n on input line 47.
+) ("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\isabelle.sty"
+\isa@parindent=\dimen135
+\isa@parskip=\dimen136
+
+(C:\CTEX\MiKTeX\tex\latex\comment\comment.sty
+\CommentStream=\write3
+ Excluding comment 'comment')
+Including comment 'isadelimtheory' Including comment 'isatagtheory'
+Including comment 'isadelimproof' Including comment 'isatagproof'
+Including comment 'isadelimML' Including comment 'isatagML'
+Including comment 'isadelimvisible' Including comment 'isatagvisible'
+Excluding comment 'isadeliminvisible' Excluding comment 'isataginvisible')
+("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\isabellesym.sty"
 )
 ("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\Formal Verificat
 ion for A Buddy Allocation Model Specification.aux")
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
-LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
+LaTeX Font Info:    ... okay on input line 15.
 
 (C:\CTEX\MiKTeX\tex\context\base\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count129
-\scratchdimen=\dimen135
+\scratchdimen=\dimen137
 \scratchbox=\box56
 \nofMPsegments=\count130
 \nofMParguments=\count131
 \everyMPshowfont=\toks25
 \MPscratchCnt=\count132
-\MPscratchDim=\dimen136
+\MPscratchDim=\dimen138
 \MPnumerator=\count133
 \makeMPintoPDFobject=\count134
 \everyMPtoPDFconversion=\toks26
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 36.
+LaTeX Font Info:    Try loading font information for U+msa on input line 38.
  (C:\CTEX\MiKTeX\tex\latex\amsfonts\umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 36.
+LaTeX Font Info:    Try loading font information for U+msb on input line 38.
 
 (C:\CTEX\MiKTeX\tex\latex\amsfonts\umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 45.
+LaTeX Font Info:    Try loading font information for U+lasy on input line 38.
+
+(C:\CTEX\MiKTeX\tex\latex\base\ulasy.fd
+File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
+)
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 47.
 
 (C:\CTEX\MiKTeX\tex\latex\base\omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <9> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 45.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 47.
  [1
 
 {C:/CTEX/UserData/pdftex/config/pdftex.map{Unicode.sfd}{UGBK.sfd}}] [2]
-Overfull \hbox (14.367pt too wide) in paragraph at lines 81--81
+Overfull \hbox (14.367pt too wide) in paragraph at lines 87--87
 [] 
  []
 
-[3] <fig1.pdf, id=27, 625.71266pt x 166.18686pt>
+[3] <fig1.pdf, id=23, 625.71266pt x 166.18686pt>
 File: fig1.pdf Graphic file (type pdf)
  <use fig1.pdf>
-Package pdftex.def Info: fig1.pdf used on input line 114.
+Package pdftex.def Info: fig1.pdf used on input line 120.
 (pdftex.def)             Requested size: 347.12354pt x 92.19675pt.
- [4 <C:/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig1.pdf>]
+ [4]
 
 pdfTeX warning: pdflatex.exe (file C:/Users/johnakeke/Desktop/Paper for Buddy M
 emory Allocation/fig2.pdf): PDF inclusion: found PDF version <1.6>, but at most
  version <1.5> allowed
-<fig2.pdf, id=40, 630.78189pt x 169.21317pt>
+<fig2.pdf, id=27, 630.78189pt x 169.21317pt>
 File: fig2.pdf Graphic file (type pdf)
  <use fig2.pdf>
-Package pdftex.def Info: fig2.pdf used on input line 132.
+Package pdftex.def Info: fig2.pdf used on input line 138.
 (pdftex.def)             Requested size: 347.12354pt x 93.12173pt.
- [5 <C:/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig2.pdf>] [6
-]
-Overfull \hbox (0.85205pt too wide) in paragraph at lines 221--222
+ [5 <C:/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig1.pdf> <C:
+/Users/johnakeke/Desktop/Paper for Buddy Memory Allocation/fig2.pdf>] [6]
+Overfull \hbox (0.85205pt too wide) in paragraph at lines 236--237
 []\OT1/cmr/m/it/10 The bud-dy al-lo-ca-tion spec-i-fi-ca-tion pick-s out the mo
 st suit-able mem-
  []
 
-[7] [8] [9] [10]
-Overfull \hbox (8.46461pt too wide) in paragraph at lines 369--371
+[7] [8] [9] [10] [11]
+Overfull \hbox (8.46461pt too wide) in paragraph at lines 384--386
 \OT1/cmr/m/it/10 exec[]event e $\OMS/cmsy/m/n/10 $ $f$\OT1/cmr/m/it/10 (s, s')
 . s' $\OMS/cmsy/m/n/10 2$ $f$\OT1/cmr/m/it/10 (e s)$\OMS/cmsy/m/n/10 g$ $^$ \OT
 1/cmr/m/it/10 e $\OMS/cmsy/m/n/10 2$ $f$\OT1/cmr/m/it/10 alloc[]memory, free[]m
 emory, scheduler$\OMS/cmsy/m/n/10 g$$g$ 
  []
 
-[11] [12]
+[12]
 Missing character: There is no â in font cmr9!
 Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
- [13]
+ [13] [14]
 ("C:\Users\johnakeke\Desktop\Paper for Buddy Memory Allocation\Formal Verificat
 ion for A Buddy Allocation Model Specification.aux") ) 
 Here is how much of TeX's memory you used:
- 2482 strings out of 495354
- 30236 string characters out of 3183859
- 93103 words of memory out of 3000000
- 5624 multiletter control sequences out of 15000+200000
- 15525 words of font info for 58 fonts, out of 3000000 for 9000
+ 3030 strings out of 495354
+ 37288 string characters out of 3183859
+ 98031 words of memory out of 3000000
+ 6167 multiletter control sequences out of 15000+200000
+ 9081 words of font info for 36 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
- 29i,11n,24p,1006b,293s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 29i,11n,24p,1077b,305s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/CTEX/MiKTeX/fonts/typ
 e1/public/amsfonts/cm/cmbx10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm
 /cmbx12.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/CTEX/M
 iKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/CTEX/MiKTeX/fonts/type1/pub
-lic/amsfonts/cm/cmmi6.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.
-pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmib10.pfb><C:/CTEX/MiKTeX/
-fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmr6.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/C
-TEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/CTEX/MiKTeX/fonts/type1/
-public/amsfonts/cm/cmsl10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cm
-sy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/CTEX/MiKT
-eX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/
-amsfonts/cm/cmti10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt9.pfb
-><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/symbols/msam10.pfb><C:/CTEX/MiKTeX
-/fonts/type1/public/amsfonts/symbols/msbm10.pfb><C:/CTEX/MiKTeX/fonts/type1/pub
-lic/amsfonts/symbols/msbm7.pfb>
+lic/amsfonts/cm/cmmi7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.
+pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.pfb><C:/CTEX/MiKTeX/fon
+ts/type1/public/amsfonts/cm/cmr9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
+s/cm/cmsy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/CT
+EX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/CTEX/MiKTeX/fonts/type1/
+public/amsfonts/cm/cmti10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/latxf
+ont/lasy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb><
+C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm7.pfb>
 Output written on "Formal Verification for A Buddy Allocation Model Specificati
-on.pdf" (13 pages, 667605 bytes).
+on.pdf" (14 pages, 620079 bytes).
 PDF statistics:
- 143 PDF objects out of 1000 (max. 8388607)
+ 125 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  11 words of extra memory for PDF output out of 10000 (max. 10000000)
 
