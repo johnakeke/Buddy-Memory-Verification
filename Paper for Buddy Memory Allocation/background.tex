@@ -1,0 +1,9 @@
+\section{Isabelle/HOL Verification Environment}
+Our specification and verification work is based on the interactive theorem prover Isabelle/HOL. HOL represents the Higher-Order Logical and Isabelle is its generic interactive theorem prover. In Isabelle/HOL, it is usual to employ functional programming method to define a function and to adopt theorem proving technique to reason a lemma or a theorem. For a gentle introduction to Isabelle/HOL see~\cite{reg_Isabelle/HOL}.
+
+Apart from commonly used types like \emph{bool} and \emph{nat}, Isabelle offers notion \emph{datatype} to create a distinguished element to some existing types. Projection functions \emph{fst} and \emph{snd} comes with the tuple (\emph{$t_1$} $\times$ \emph{$t_2$}). Notions \emph{list} and \emph{set} are used as constructors to create a collection of same type. Operation \emph{cons} denoted by '$\#$' on a list means that adding an element to the head of list. The \emph{i}th component of a list \emph{xs} is written as \emph{xs}!\emph{i}. Notion \emph{THE} returns an arbitrary value unless the formula has a unique solution. Notion \emph{SOME} differs from \emph{THE} because it uses the
+axiom of choice to pick any solution. Furthermore, $\lambda$-abstractions are also contained in terms like $\lambda$(\emph{x, y}). \emph{f x y}.
+
+Non-recursive definition can be made with the \textbf{definition} command and the \textbf{primrec} function definition is used for primitive recursions. The notation {\isasymlbrakk} $A_1$;\dots;$A_n${\isasymrbrakk} $\Longrightarrow$ A represents an implication with assumptions $A_1$;\dots;$A_n$ and conclusion A. Isabelle mainly employs backward deduction, which means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. It uses the rules of the reasoning like introduction, elimination, destruction rules, etc., as well as automatic provers such as \emph{SMT}.
+
+

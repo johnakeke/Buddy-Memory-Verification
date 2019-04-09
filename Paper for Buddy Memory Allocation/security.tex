@@ -1,0 +1,105 @@
+\section{Security of Buddy Allocation Model}
+Integrity is the assurance that the information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this section, we try to prove the integrity property for buddy memory model. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. Next, we introduce interfaces into the buddy memory model, and package it into an event specification. We think of this event specification as an instantiated security model. The last step is to prove the instantiated model satisfy the integrity property. This part of work is following the work form~\cite{reg_securitymodel}.
+
+\subsection{A Security Model}
+
+\subsubsection{Memory State Machine} is designed to be event based. Thus, $\mathcal{S}$ represents the state space and $\mathcal{E}$ is the set of event labels. The state-transition function is characterized by $\varphi$, which has the form of $\varphi: \mathcal{E} \rightarrow \mathbb{P}(\mathcal{S} \times \mathcal{S})$. The state machine must execute from a initial state, therefore, $s_0 \in \mathcal{S}$ which is on behalf of the initial state must be included in this machine. The definition of this state machine is as follows.
+
+\begin{definition} [State Machine] $\mathcal{M} = \langle \mathcal{S}, \mathcal{E}, \varphi, s_0 \rangle$
+\end{definition}
+
+Based on the state machine above, we introduce some auxiliary functions: The \textbf{execution(s, es)} function returns the set of final states by executing a sequence of of events \emph{es} from a state \emph{s}. The \textbf{reachable(s)} function (denoted as $\mathcal{R}(s)$) checks the reachability of a state \emph{s} by the \emph{execution} function.
+
+Next, we add the concept of partitions to represent the entities that execute the state-transition function. Therefore, partitions are the basic domains. In addition, we introduce partition scheduling as a domain \textbf{scheduler}. And we give the strict restriction that \emph{scheduler} cannot be interfered by any other domains. Its aim is to ensure that \emph{scheduler} does not leak information by its scheduling decisions. Therefore, the domains ($\mathcal{D}$) in $\mathcal{M}$ are the configured partitions ($\mathcal{P}$) and the scheduler ($\mathbb{S}$), $\mathcal{D}$ = $\mathcal{P}$ $\cup$ $\lbrace$$\mathbb{S}$$\rbrace$. The \textbf{dom(s, e)} function gives which partition is currently executing \emph{e} in the state \emph{s} by consulting the \emph{scheduler}.
+
+\subsubsection{Integrity Definition} is referenced to~\cite{reg_noninterference} which provides a formalism for the specification of security policies. The main idea in this article is that domain \emph{u} is non-interfering with domain \emph{v} if no action performed by \emph{u} can influence the subsequence outputs seen by \emph{v}. According to this, we use the concepts of state equivalence and interfering to construct integrity property.
+
+Firstly, state equivalence (denoted as $\sim$) means that states are identical for a domain seen by it. For example, some certain collections that accessed only by a domain are indistinguishable at two different states. We use $\equidom{s}{d}{t}$ to represent \emph{s} and \emph{t} are identical for domain \emph{d}.
+
+By the concept of state equivalence, interfering (denoted ad $\interf$) means that the state equivalence of some domain is broken due to the operations by another domain. And $\ninterf$ is the opposite relation of $\interf$. Since the \emph{scheduler} can schedule other domains, it can interfere with them. However, the \emph{scheduler} cannot be interfered by any other domains to ensure that the \emph{scheduler} does not leak information by its scheduling decisions.
+
+With these two concepts, we can easily define the integrity property conditions as follows.
+
+\begin{definition} [Integrity Property Conditions] \\
+IPC(e) $\equiv$ $\forall$d s s'. $\mathcal{R}(s)$ $\wedge$ dom(s, e) $\ninterf$ d $\wedge$ (s, s') $\in$ $\varphi(e)$ $\longrightarrow$ ($\equidom{s}{d}{s'}$)
+\end{definition}
+
+From the conditions, if the domain being scheduled to run promises not to interfere other domains, then the consequences in final state seen by other domains are identical, that is to say the domain being scheduled to run has only access to its own space. The integrity property conditions do guarantee that the information is trustworthy and accurate.
+
+\subsubsection{Security Model} is defined as follows based on the discussion above.
+
+\begin{definition} [Security Model] $\mathcal{S\_M} = \langle \mathcal{M}, \mathcal{D}, dom, \interf, \sim \rangle$ \\
+with assumptions as follows.
+\begin{enumerate}
+\item $\forall$d $\in$ $\mathcal{D}$. $\mathbb{S}$ $\interf$ d
+\item $\forall$d $\in$ $\mathcal{D}$. d $\interf$ $\mathbb{S}$ $\longrightarrow$ d = $\mathbb{S}$
+\item $\forall$s t e. $\equidom{s}{\mathbb{S}}{t}$ $\longrightarrow$ dom(s,e) = dom(t,e)
+\item $\forall$s e. $\mathcal{R}(s)$ $\longrightarrow$ $\exists$s'. (s, s') $\in$ $\varphi(e)$
+\item $\forall$e. IPC(e)
+\end{enumerate}
+\end{definition}
+
+\subsection{Instantiation}
+In this part, we instantiate a security model in the following ways: Setting a global state; Adding interfaces to allocation and deallocation operations and instantiating the events with scheduler; Adding state-transition function by interfaces; Instantiating the definitions of interfering and equivalence.
+
+As a global state, it records all the information like domains and all kinds of resources. \emph{State} mainly consists of the currently running domain (denoted by \textbf{Cur}) and the memory address spaces occupied by the partition (characterized by function \textbf{Par\_Mem: partition $\rightharpoonup$ Mem\_Add}, \emph{Mem\_Add} is a set of \emph{ID}).
+
+For the allocation and deallocation operations, it is only necessary to update \emph{Par\_Mem} information according to the success or failure of the operations, thus forming new operations \textbf{alloc\_memory} and \textbf{free\_memory}. These two interfaces are defined as follows. In addition, a scheduler that arbitrarily selects partitions to execute is defined as follows.
+
+\begin{definition} {Allocate Memory} \\
+alloc\_memory s $\equiv$ if (True alloc) then (update Par\_Mem s (Cur s)) else s
+\end{definition}
+
+\begin{definition} {Deallocate Memory} \\
+free\_memory s $\equiv$ if (True free) then (update Par\_Mem s (Cur s)) else s
+\end{definition}
+
+\begin{definition} {Scheduler} \\
+scheduler $\equiv$ (Cur s = SOME p. p $\in$ par\_set)
+\end{definition}
+
+With these interfaces functions, we give the state-transition function \textbf{exec\_event(e)} as a instantiation of $\varphi$. Thus event \emph{e} represents \emph{alloc\_memory}, \emph{free\_memory} and \emph{scheduler}.
+
+\begin{definition} {State-transition} \\
+exec\_event e $\equiv$ $\lbrace$(s, s'). s' $\in$ $\lbrace$(e s)$\rbrace$ $\wedge$ e $\in$ $\lbrace$alloc\_memory, free\_memory, scheduler$\rbrace$$\rbrace$
+\end{definition}
+
+Finally, we give the instantiation of integrity property we want to prove through the instantiations of $\interf$ and $\sim$. In this case, our goal is to prove that if the currently running domain is not interfering other domains, then the memory address spaces other domains owns maintain identical. Then we give the instantiations of $\interf$ and $\sim$ to achieve it.
+
+\begin{definition} {Instantiation of $\interf$ by Domain} \\
+d1 $\interf$ d2 $\equiv$ (d1 = d2) $\vee$ is\_scheduler d1
+\end{definition}
+
+\begin{definition} {Instantiation of $\sim$ by State and Domain} \\
+$\equidom{s}{d}{t}$ $\equiv$ (is\_scheduler d $\longrightarrow$ Cur s = Cur t) $\wedge$ (is\_partition d $\longrightarrow$ Par\_Mem s d = Par\_Mem t d) $\wedge$ True
+\end{definition}
+
+
+\subsection{Security Proofs}
+
+To prove that the instantiated model is a security model, we have to prove item 1 to item 5 in $\mathcal{S\_M}$ definition one by one. The first two assumptions are preserved by the interfering $\interf$ definition. The assumption 3 is preserved by $\sim$ for the scheduler. The assumption 4 of reachability is preserved with the function \emph{exec\_event(e)} by the following lemma.
+
+\begin{lemma}
+$\forall$s e. $\mathcal{R}(s)$ $\longrightarrow$ $\exists$s'. (s, s') $\in$ exec\_event(e)
+\end{lemma}
+
+To prove the \emph{IPC(e)}, we have to apply concrete conditions of \emph{alloc\_memory}, \emph{free\_memory} and \emph{scheduler} to imply these events satisfy the Integrity Property Conditions. The followings are the lemmes of each concrete function and final theorem.
+
+\begin{lemma} {IPC(e) of alloc\_memory} \\
+$\forall$d s s'. $\mathcal{R}(s)$ $\wedge$ is\_partition (Cur s) $\wedge$ (Cur s) $\ninterf$ d $\wedge$ s' = alloc\_memory s $\longrightarrow$ $\equidom{s}{d}{s'}$
+\end{lemma}
+
+\begin{lemma} {IPC(e) of free\_memory} \\
+$\forall$d s s'. $\mathcal{R}(s)$ $\wedge$ is\_partition (Cur s) $\wedge$ (Cur s) $\ninterf$ d $\wedge$ s' = free\_memory s $\longrightarrow$ $\equidom{s}{d}{s'}$
+\end{lemma}
+
+\begin{lemma} {IPC(e) of scheduler} \\
+$\forall$d s s'. is\_scheduler (Cur s) $\wedge$ (Cur s) $\ninterf$ d $\longrightarrow$ $\equidom{s}{d}{s'}$
+\end{lemma}
+
+\begin{theorem} {IPC(e) Satisfaction} \\
+$\forall$e $\in$ {alloc\_memory, free\_memory, scheduler}. IPC(e)
+\end{theorem}
+
+In the end, we proved that the event specification based on the buddy allocation model satisfies the integrity property and is a security model. According to the instantiation of interfering, by the buddy allocation model, as long as the domain is not the scheduler, the execution of one domain will not influence the memory address spaces that other domains have. The security proofs above ensure that that memory information is trustworthy and accurate.
+
