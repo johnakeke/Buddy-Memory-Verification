@@ -1,10 +1,9 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  9 APR 2019 13:21
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2018.9.17)  9 APR 2019 13:35
 entering extended mode
-**Formal*Verification*for*A*Buddy*Allocation*Model*Specification.tex
+**Section*1*Abstration*and*Introduction.tex
 
 ("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.tex"
+er for Buddy Memory Allocation\Section 1 Abstration and Introduction.tex"
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for loaded.
 
@@ -260,8 +259,7 @@ Excluding comment 'isadeliminvisible' Excluding comment 'isataginvisible')
 ("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
 er for Buddy Memory Allocation\isabellesym.sty")
 ("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.aux")
+er for Buddy Memory Allocation\Section 1 Abstration and Introduction.aux")
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
 LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 15.
@@ -274,7 +272,8 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 15.
 LaTeX Font Info:    ... okay on input line 15.
- (C:\CTEX\MiKTeX\tex\context\base\supp-pdf.mkii
+
+(C:\CTEX\MiKTeX\tex\context\base\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count129
 \scratchdimen=\dimen137
@@ -359,30 +358,30 @@ Missing character: There is no € in font cmr9!
 Missing character: There is no “ in font cmr9!
  [14]
 ("C:\Users\jiangke\Documents\verification\Memory_Verification_Final_Version\Pap
-er for Buddy Memory Allocation\Formal Verification for A Buddy Allocation Model
- Specification.aux") ) 
+er for Buddy Memory Allocation\Section 1 Abstration and Introduction.aux") ) 
 Here is how much of TeX's memory you used:
  3030 strings out of 495354
- 37993 string characters out of 3183859
+ 37743 string characters out of 3183859
  98031 words of memory out of 3000000
  6167 multiletter control sequences out of 15000+200000
  9081 words of font info for 36 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
- 29i,11n,24p,1077b,236s stack positions out of 5000i,500n,10000p,200000b,50000s
-<C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb
-><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/CTEX/MiKTeX/font
-s/type1/public/amsfonts/cm/cmbx9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
-s/cm/cmmi10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/CT
-EX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/CTEX/MiKTeX/fonts/type1/
-public/amsfonts/cm/cmr7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9
-.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/CTEX/MiKTeX/
-fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/ams
-fonts/cm/cmsy9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C
-:/CTEX/MiKTeX/fonts/type1/public/amsfonts/latxfont/lasy10.pfb><C:/CTEX/MiKTeX/f
-onts/type1/public/amsfonts/symbols/msbm10.pfb><C:/CTEX/MiKTeX/fonts/type1/publi
-c/amsfonts/symbols/msbm7.pfb>
-Output written on "Formal Verification for A Buddy Allocation Model Specificati
-on.pdf" (14 pages, 625550 bytes).
+ 29i,11n,24p,1052b,236s stack positions out of 5000i,500n,10000p,200000b,50000s
+<C:
+/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/CTEX/MiKTeX/fonts/ty
+pe1/public/amsfonts/cm/cmbx12.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/c
+m/cmbx9.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C:/CTEX/
+MiKTeX/fonts/type1/public/amsfonts/cm/cmmi7.pfb><C:/CTEX/MiKTeX/fonts/type1/pub
+lic/amsfonts/cm/cmr10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr7.p
+fb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/CTEX/MiKTeX/font
+s/type1/public/amsfonts/cm/cmsy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfon
+ts/cm/cmsy7.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/CT
+EX/MiKTeX/fonts/type1/public/amsfonts/cm/cmti10.pfb><C:/CTEX/MiKTeX/fonts/type1
+/public/amsfonts/latxfont/lasy10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfont
+s/symbols/msbm10.pfb><C:/CTEX/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm7.
+pfb>
+Output written on "Section 1 Abstration and Introduction.pdf" (14 pages, 625550
+ bytes).
 PDF statistics:
  125 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
