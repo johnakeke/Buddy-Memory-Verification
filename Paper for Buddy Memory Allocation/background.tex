@@ -1,9 +1,19 @@
-\section{Isabelle/HOL Verification Environment}
-Our specification and verification work is based on the interactive theorem prover Isabelle/HOL. HOL represents the Higher-Order Logical and Isabelle is its generic interactive theorem prover. In Isabelle/HOL, it is usual to employ functional programming method to define a function and to adopt theorem proving technique to reason a lemma or a theorem. For a gentle introduction to Isabelle/HOL see~\cite{reg_Isabelle/HOL}.
+\section{Background}
 
-Apart from commonly used types like \emph{bool} and \emph{nat}, Isabelle offers notion \emph{datatype} to create a distinguished element to some existing types. Projection functions \emph{fst} and \emph{snd} comes with the tuple (\emph{$t_1$} $\times$ \emph{$t_2$}). Notions \emph{list} and \emph{set} are used as constructors to create a collection of same type. Operation \emph{cons} denoted by '$\#$' on a list means that adding an element to the head of list. The \emph{i}th component of a list \emph{xs} is written as \emph{xs}!\emph{i}. Notion \emph{THE} returns an arbitrary value unless the formula has a unique solution. Notion \emph{SOME} differs from \emph{THE} because it uses the
-axiom of choice to pick any solution. Furthermore, $\lambda$-abstractions are also contained in terms like $\lambda$(\emph{x, y}). \emph{f x y}.
+In this section we give the necessary background for the buddy allocation algorithm we provide the specification for, and the Isabelle/HOL theorem prover that we use for its specification and verification.
 
-Non-recursive definition can be made with the \textbf{definition} command and the \textbf{primrec} function definition is used for primitive recursions. The notation {\isasymlbrakk} $A_1$;\dots;$A_n${\isasymrbrakk} $\Longrightarrow$ A represents an implication with assumptions $A_1$;\dots;$A_n$ and conclusion A. Isabelle mainly employs backward deduction, which means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. It uses the rules of the reasoning like introduction, elimination, destruction rules, etc., as well as automatic provers such as \emph{SMT}.
+\subsection{Buddy Allocation Algorithm}
+
+\subsection{Isabelle/HOL}
+We use the interactive theorem prover Isabelle/HOL~\cite{reg_Isabelle/HOL} to conduct the specification and verification of the memory management. Isabelle/HOL is a higher order logic theorem prover, using a typed lambda calculus-like functional language for specifications. 
+
+Isabelle/HOL includes a specification for simple common types such as naturals, integers, and booleans. It also specify some composed data types like tuples, records, lists, and sets that are parametrized on other types. Isabelle provides the interface \emph{datatype} for the creation of user defined types based on type constructors. 
+
+Isabelle provides functions on predefined types to access their members or to provide additional operations over them. In the following we describe those functions that we use along this work. Tuples are denoted as (\emph{$t_1$} $\times$ \emph{$t_2$}), projection function \emph{fst} and \emph{snd} respectively returns elements $t_1$ and $t_2$. Lists are defined as a datatype with an empty construct denoted with \emph{NIL} or $[]$, and a concatenation construct denoted with $\#$, where $x\#xs$ adds $x$ to the front of $xs$. The $i$th component of a list $as$ is written as $as!i$. Isabelle HOL provides functions for definite and indefinite descriptions. Definitive descriptions are represented by $THE\ x.\ P\ x$ and return the element uniquely described by the predicate $P$, else it returns and undefined value. Indefinite descriptions are represented by $SOME\ x.\, P\ x$ selecting a random element from the predicate $P$ that must describe at least one element, else it returns an arbitrary value.
+
+Non-recursive definitions can be specified \textbf{definition}, and \textbf{primrec} allows the specification of recursive functions for which Isabelle can automatically prove completion and termination. 
+
+
+%The notation {\isasymlbrakk} $A_1$;\dots;$A_n${\isasymrbrakk} $\Longrightarrow$ A represents an implication with assumptions $A_1$;\dots;$A_n$ and conclusion A. Isabelle mainly employs backward deduction, which means to prove the main goal, we must firstly prove subgoals which are decomposed from the main goal. It uses the rules of the reasoning like introduction, elimination, destruction rules, etc., as well as automatic provers such as \emph{SMT}.
 
 
