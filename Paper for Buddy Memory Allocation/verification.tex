@@ -1,7 +1,9 @@
 \section{Formalization of Buddy Allocation Model}
-The formalization of buddy allocation models consists of a specification for algorithms and proofs to properties for functional correctness. Compared with general buddy allocation algorithm, the difference in this paper is that we apply quartering way from Zephyr OS, an embedded system, for buddy allocation operations. This approach is more practical because it aims to pursue the efficiency. Since our specification requires a detailed description of the algorithms as well as the complex quartering way to describe, the foreseeable result is that it brings complexity to proofs than those abstract memory models.
+The formalization of the buddy allocation memory management consists of a model for the necessary data structures to represent the memory, and for the allocation and disposal operations memory management provides. This formalization follows the algorithms for the buddy allocation memory management in Zephyr OS~\cite{}, which applies a quartering split over nodes.
 
-For functional correctness, we try to answer these questions which are the basic of later properties: Do the algorithms pick out the most suitable block from all the available blocks? Do the algorithms correctly adjust the type of the relevant memory blocks after allocation and deallocation? How do the algorithms make sure to execute the merging operation after deallocation? How does the specification ensure the correctness of the quad-tree structure? What invariants does the specification preserve? Do the algorithms satisfy some security properties? Answering these questions contributes to the construction of a reliability memory system.
+%This approach is more practical because it aims to pursue the efficiency. Since our specification requires a detailed description of the algorithms as well as the complex quartering way to describe, the foreseeable result is that it brings complexity to proofs than those abstract memory models.
+
+To guarantee functional correctness of the formal model we proof a number of properties related to the transformations that the operations carry out over the memory structure. We try to answer the following questions: do the operations pick out the most suitable block from all the available blocks? is the state of the data structures representing the memory correctly set after executing the operations? are free blocks properly merged after a disposal operation? Answering these questions contributes to the construction of a reliable memory system.
 
 \subsection{Memory Model Specification}
 The specification begins with the structure of a quad-tree.
@@ -14,7 +16,7 @@ The quad-tree constructed by induction contains two pieces of information: the m
 
 Based on the above structure of a quad-tree, next we specify two operations with the buddy algorithms: \textbf{alloc} and \textbf{free}. For \emph{rsize} (the size of requested memory block) in allocation operation, there is a function that maps it to the level of the quad-tree and returns the most suitable level \emph{rlv}. The concept of \emph{most suitable level} will be proved in the next subsection. For the specification, we only use levels for both memory blocks in the quad-trees and requested memory blocks. And the smaller the level, the larger size the memory block.
 
-\begin{definition} [existence of free blocks in level] \\
+\begin{definition} [existence of free blocks in a level] \\
 	exists\_freelevel blo\_set lv $\equiv$ $\exists$l. l $\leq$ lv $\wedge$ $\exists$b $\in$ blo\_set. freesets\_level b l $\ne$ $\emptyset$
 \end{definition}
 
