@@ -4,7 +4,7 @@ In this section we give the necessary background for the buddy allocation algori
 \subsection{Buddy Allocation Algorithm}
 Generally, the buddy algorithms~\cite{reg_knowlton} in which each block is subdivided into two smaller blocks are the simplest and most common variety. The main idea is that when a larger block is split, it is divided into two smaller blocks, and each smaller block becomes an unique buddy to the other. A split block can only be merged with its unique buddy block, which then reforms the larger block they were split from. With this way, buddy memory system has small external fragmentation when compared with other dynamic allocation techniques.
 
-To implement buddy allocation algorithms, it applies two important data structures multilevel free linked-list and multilevel free bitmap. The first one is used to manage free blocks at each level. The block to be allocated or deallocated is directly picked from the head of linked-list or added into the tail. The bitmap is used to check whether adjacent free blocks belong to the same parent node in order to decide whether to execute merging. Fig. \ref{fig3} describes a moment in memory system using these two date structures.
+To implement buddy allocation algorithms, it applies two important data structures multilevel free linked-list and multilevel free bitmap. The first one is used to manage free blocks at each level. The block to be allocated or deallocated is directly picked from the head of linked-list or added into the tail. Bitmap is used to quickly check if blocks belonging to the same parent are free, in order to decide whether to merge these blocks into one block. Fig. \ref{fig3} describes a moment in memory system using these two date structures.
 
 \begin{figure}
 	\centering
