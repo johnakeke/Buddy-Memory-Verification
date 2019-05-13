@@ -1,0 +1,139 @@
+\documentclass[10pt,conference,compsoc]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{latexsym}
+\usepackage{isabelle,isabellesym}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{theorem}{Theorem}
+
+\newcommand{\defprefix}{Definition}
+\newcommand{\lemmaprefix}{Lemma}
+\newcommand{\theoremprefix}{Theorem}
+
+\newcommand{\equidom}[3]{{#1}\stackrel{#2}{\sim}{#3}}
+\makeatletter
+\newcommand{\superimpose}[2]{{\ooalign{$#1\@firstoftwo#2$\cr\hfil$#1\@secondoftwo#2$\hfil\cr}}}
+\makeatother
+\newcommand{\interf}{\leadsto}
+\newcommand{\ninterf}{\mathrel{\mathpalette\superimpose{{\slash}{\leadsto}}}}
+
+\renewcommand{\IEEEQED}{}
+
+\isabellestyle{it}
+
+\def\isabellecode{
+	\tiny{}}
+\let\endisabellecode=\endisabellecode
+
+\def\isabellec{
+	\isabellebody{}}
+\let\endisabellec=\endisabellebody
+
+\newcommand{\isacodeftsz}{\footnotesize}
+
+\def\isabellebodyc{
+	\minipage[c]{\textwidth}{}
+	\isabellebody{}
+}
+\let\endisabellebodyc=\endminipage
+
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+
+\title{Formal Verification for A Buddy Allocation Model Specification}
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Ke Jiang}
+\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
+\textit{Nanyang Technological University}\\
+Singapore, Singapore \\
+johnjiang@ntu.edu.sg}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Yongwang Zhao}
+\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
+\textit{Beihang University}\\
+\textit{Beijing Advanced Innovation Center for Big Data and Brain Computing} \\
+\textit{Beihang University}\\
+Beijing, China \\
+zhaoyw@buaa.edu.cn}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} David San\'{a}n}
+\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
+\textit{Nanyang Technological University}\\
+Singapore, Singapore \\
+sanan@ntu.edu.sg}
+\and
+\IEEEauthorblockN{4\textsuperscript{th} Yang Liu}
+\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
+\textit{Nanyang Technological University}\\
+Singapore, Singapore \\
+yangliu@ntu.edu.sg}
+}
+
+\maketitle
+
+\begin{abstract}
+Buddy allocation algorithms are widely adopted by memory management systems to manage the address space accessed by applications. However, errors in any stage of the development process of the memory management component, from the specification to the implementation, may lead to critical issues in other components using it. Rigorous mathematical proofs provide strong assurance to the development process. We apply formal methods to ensure the correctness in the specification of a buddy allocation algorithm. In this paper, we use the interactive theorem prover Isabell/HOL to construct a specification for a buddy allocation algorithm consisting on operations to allocate and dispose memory areas. Thence we verify that the operations preserve key invariants over the memory to guarantee functional correctness of the algorithm. Finally, we verify that the operations also preserve integrity of the memory, therefore they do not affect other memory areas previously allocated.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Memory Specification, Formal Verification, Functional Correctness, Security.
+\end{IEEEkeywords}
+
+\input{introduction}
+\input{background}
+\input{specification}
+\input{verification}
+%\input{conclusion}
+
+\begin{thebibliography}{00}
+	\bibitem{reg_sahebolamri}
+	A. Sahebolamri, S. Constable, S. J. Chapin. A Formally Verified Heap Allocator, Electrical Engineering and Computer Science, 2018, p. 182.
+	
+	\bibitem{reg_mangano}
+	F. Mangano, S. Duquennoy, N. Kosmatov. Formal verification of a memory allocation module of Contiki with FRAMA-C : A case study, the 11th International Conference on Risks and Security of Internet and Systems, CRISIS, 2016, p. 114–120.
+	
+	\bibitem{reg_noninterference}
+	J. Goguen, J. Meseguer. Security Policies and Security Models, Proceedings of the IEEE Computer Society Symposium on Research in Security and Privacy, 1982, p. 11-20.
+	
+	\bibitem{reg_knowlton}
+	K. C. Knowlton. A fast storage allocator, Commun. ACM, 1965, p. 623-624.
+	
+	\bibitem{reg_knuth}
+	Donald E. Knuth. Dynamic storage allocation. In The Art of Computer Programming, volume 1, section 2.5, pages 435–455. Addison-Wesley, 1968.
+	
+	\bibitem{reg_higham}
+	L. Higham, J. Kawash, N. Verwaal. Defining and comparing memory consistency
+	models, Proceedings of the 10th International Conference on Parallel and Distributed Computing Systems, 1997, p. 349–356.
+	
+	\bibitem{reg_mckusick}
+	Marshall Kirk McKusick, Keith Bostic, Michael J. Karels, and John S. Quarterman. The Design and Implementation of the 4.4 BSD Operating System. Addison-Wesley, 1996.
+	
+	\bibitem{reg_marti}
+	N. Marti, R. Affeldt, A. Yonezawa. Formal Verification of the Heap Manager of an Operating System Using Separation Logic, International Conference on Formal Engineering Methods, ICFEM: Formal Methods and Software Engineering, 2006, p. 400-419.
+	
+	\bibitem{reg_blazy}
+	S. Blazy, X. Leroy. Formal Verification of a Memory Model for C-Like Imperative Languages, ICFEM: Formal Methods and Software Engineering, 2005, p. 280-299.
+	
+	\bibitem{reg_Isabelle/HOL}
+	T. Nipkow, L. C. Paulson, and M. Wenzel. Isabelle/HOL-A Proof Assistant for Higher-Order Logical, volume 2283 of LNCS. Springer-Verlag, 2002.
+	
+	\bibitem{reg_mansky}
+	W. Mansky, G. Dmitri, S. Zdancewic. An Axiomatic Specification for Sequential Memory Models, Computer Aided Verification, July 2015, p. 413-428.
+	
+	\bibitem{reg_securitymodel}
+	Y. Zhao, D. Sanan, F. Zhang, Y. Liu. Refinement-based Specification and Security Analysis of Separation Kernels, IEEE Transactions on Depandable and Secure Computing, Volume 16, Issue 1, January 2019, p. 127-141.
+\end{thebibliography}
+
+\end{document}
