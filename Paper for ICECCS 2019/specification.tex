@@ -20,11 +20,11 @@ Block\ &=\ (block\_state\_type\ \times\ ID)\ tree
 }
 In this specification, we use tuple type (\emph{block\_state\_type} $\times$ \emph{ID}) to instantiate the polymorphic notation \emph{'a} in the quad-tree structure. Type \emph{block\_state\_type} stands for the usage state of a block. It consists of two subtypes indicated as \emph{ALLOC} and \emph{FREE} constructed by \emph{datatype} function. Another type \emph{ID} in basic type \emph{nat} represents a range of address occupied by a memory block. Finally, type \emph{Block} represents an instantiated quad-tree.
 
-In addition, we create some auxiliary functions to manipulate the \textsl{block tree}. Function \textbf{get\_level} takes two Blocks \emph{btree} and \emph{b} as inputs, then returns a nat \emph{level} which represents the layer number that \emph{b} locates in \emph{btree} from the root whose layer number is 0. Function \textbf{allocsets} takes a Block \emph{btree} and returns a Block set \emph{aset} of all Leaf nodes whose \emph{block\_state\_type} is \emph{ALLOC} from \emph{btree}. Function \textbf{freesets} has a similar definition but returns \emph{FREE} ones. Function \textbf{freesets\_level} takes a Block \emph{btree} and a nat \emph{level}, then returns a Block set \emph{fset} of all Leaf nodes whose \emph{block\_state\_type} is \emph{FREE} and locate at \emph{level} in \emph{btree}. We use a notation \emph{idset} to represent the collection of all used \emph{IDs}. To create a new Leaf node, we have to pick up a new \emph{ID} to mark it by the strategy of \emph{SOME p. p} $\notin$ \emph{idset}.
+In addition, we create some auxiliary functions to manipulate the \textsl{block tree}. Function \textbf{get\_level} takes two Blocks \emph{btree} and \emph{b} as inputs, then returns a nat \emph{level} which represents the layer number that \emph{b} locates in \emph{btree} from the root note whose layer number is 0. Function \textbf{allocsets} takes a Block \emph{btree} and returns a Block set \emph{aset} of all Leaf nodes whose \emph{block\_state\_type} is \emph{ALLOC} from \emph{btree}. Function \textbf{freesets} has a similar definition but returns \emph{FREE} ones. Function \textbf{freesets\_level} takes a Block \emph{btree} and a nat \emph{level}, then returns a Block set \emph{fset} of all Leaf nodes whose \emph{block\_state\_type} is \emph{FREE} and locate at \emph{level} in \emph{btree}. We use a notation \emph{idset} to represent the collection of all used \emph{IDs}. To create a new Leaf node, we have to pick up a new \emph{ID} to mark it by the strategy of \emph{SOME p. p} $\notin$ \emph{idset}.
 
-Before introducing allocation model, we create a function \textbf{output\_level} that maps request sizes to the most suitable allocation levels in a quad-tree. The input parameters are a nat list \emph{blo\_list} and a nat \emph{rsize}. Static linked list \emph{blo\_list} is used to store the size of blocks for each level in a quad-tree and its indexes represent the levels of a quad-tree. For example, the size of root is 1024\emph{Mbytes} and the first level is 256\emph{Mbytes}, then \emph{blo\_list}!0 is equal to 1024 and \emph{blo\_list}!1 is 256. The \emph{blo\_list} is a strictly decreasing list to simulate the fact that the smaller the level, the larger size the memory block. The function returns a nat index \emph{l} in \emph{blo\_list} with these constrains: the size it represents has to be greater than or equal to the size of request block, and there is no smaller size that meets this condition. After that, the most suitable block size is picked up from \emph{blo\_list}, and then mapped to the correct level of the quad-tree by the index \emph{l} in \emph{blo\_list}. We use \emph{rlv} to represent the output. The definition of this mapping is as follows.
+Before introducing allocation model, we create a function \textbf{output\_level} that maps requested size to the most suitable allocation level in a quad-tree. The input parameters are a nat list \emph{blo\_list} and a nat \emph{rsize}. Static linked list \emph{blo\_list} is used to store the size of blocks for each level in a quad-tree and its indexes represent the levels of a quad-tree. For example, the size of root is 1024\emph{Mbytes} and the first level is 256\emph{Mbytes}, then \emph{blo\_list}!0 is equal to 1024 and \emph{blo\_list}!1 is 256. The \emph{blo\_list} is a strictly decreasing list to simulate the fact that the smaller the level is, the larger size the memory block owns. The function returns a nat index \emph{l} in \emph{blo\_list} with these constrains: the size it represents has to be greater than or equal to the size of requested block, and there is no smaller size that meets this condition. After that, the most suitable block size is picked up from \emph{blo\_list}, and then mapped to the correct level of the quad-tree by the index \emph{l} in \emph{blo\_list}. We use \emph{rlv} to represent the output. The definition of this mapping is as follows.
 
-\begin{definition} [Mapping Request Sizes to Allocation Levels]
+\begin{definition} [Mapping Requested Size to Allocation Level]
 \label{mostsuitable}
 \end{definition}
 \vspace{-7pt}
@@ -38,9 +38,9 @@ Before introducing allocation model, we create a function \textbf{output\_level}
 \vspace{-17pt}
 
 \subsection{Allocation Model}
-Now we specify allocation operation as function \textbf{alloc}. Firstly, we introduce two assistant functions. Function \textbf{exists\_freelevel} takes a Block set \emph{bset} and a nat \emph{rlv} as inputs, then returns a bool result \emph{re} represents whether there is a Block in \emph{bset} (the collection of all quad-trees in memory system) that has such \emph{FREE} Leaf nodes whose level is less than or equal to \emph{rlv}. Function \textbf{freesets\_maxlevel} has the same inputs, but returns a nat \emph{lmax} represents the maximum level among all levels with \emph{FREE} Leaf nodes but less than or equal to \emph{rlv}. The definitions are as follows.
+Now we specify allocation operation as function \textbf{alloc}. Firstly, we introduce two assistant functions. Function \textbf{exists\_freelevel} takes a Block set \emph{bset} (the collection of all quad-trees in memory system) and a nat \emph{rlv} as inputs, then returns a bool result \emph{re} represents whether there is a Block in \emph{bset} that has such \emph{FREE} Leaf nodes whose level is less than or equal to \emph{rlv}. Function \textbf{freesets\_maxlevel} has the same inputs, but returns a nat \emph{lmax} represents the maximum level among all levels with \emph{FREE} Leaf nodes but less than or equal to \emph{rlv}. The definitions are as follows.
 
-\begin{definition} [existence of free blocks in a level]
+\begin{definition} [Existence of Free Leaf Nodes]
 \end{definition}
 \vspace{-7pt}
 {\footnotesize
@@ -51,7 +51,7 @@ exists\_freelevel\ bset\ rlv &\triangleq \exists l.\ l \leq rlv \\
 }
 \vspace{-12pt}
 
-\begin{definition} [maximum level of free blocks]
+\begin{definition} [Maximum Level of Free Leaf Nodes]
 \end{definition}
 \vspace{-7pt}	
 {\footnotesize
@@ -63,7 +63,7 @@ exists\_freelevel\ bset\ rlv &\triangleq \exists l.\ l \leq rlv \\
 }
 \vspace{-12pt}
 
-During the allocation process, if no such Leaf node right in the requested level exists but bigger Leaf nodes exist, then it is necessary to split a bigger Leaf node into small Leaf nodes until a Leaf node that satisfies the request appears. Function \textbf{split} divides a Leaf node \emph{b} into a Node \emph{btree} by recursion for a nat \emph{lv} times. It invokes a function \textbf{divide} that takes a Leaf node \emph{b} and returns a new non-terminal Node \emph{n} with four terminal Leaf nodes. The leftmost Leaf of \emph{n} is marked as \emph{ALLOC}, while the rests are marked as \emph{FREE}. The division operation always conducts on the leftmost subtree. A simple example describing this process is showed in Fig. \ref{fig1} until \emph{FREE} Leaf in the request level appears and then be allocated. We define the \emph{split} operation as follows.
+During the allocation process, if no such Leaf node right in the requested level exists but bigger Leaf nodes exist, then it is necessary to split a bigger Leaf node into small Leaf nodes until a Leaf node that satisfies the request appears. Function \textbf{split} divides a Leaf node \emph{b} into a Node tree \emph{btree} by recursion for a nat \emph{lv} times. It invokes a function \textbf{divide} that takes a Leaf node \emph{b} and returns a new non-terminal Node tree \emph{n} with four terminal Leaf nodes. The leftmost Leaf of \emph{n} is marked as \emph{ALLOC}, while the rests are marked as \emph{FREE}. The division operation always conducts on the leftmost subtree. A simple example describing this process is showed in Fig. \ref{fig1} until \emph{FREE} Leaf node in the request level appears and then be allocated. We define the \emph{split} operation as follows.
 
 \begin{figure}[htbp]
 	\centering
@@ -72,7 +72,7 @@ During the allocation process, if no such Leaf node right in the requested level
 	\label{fig1}
 \end{figure}
 
-\begin{definition} [splitting a leaf]
+\begin{definition} [Split a Leaf Node]
 \end{definition}
 \vspace{-7pt}
 {\footnotesize
@@ -84,13 +84,13 @@ else\ Node\ &(split\ (LL\ divide\ b)\ (lv - 1))\ (LR\ divide\ b)\\
 }	
 \vspace{-12pt}
 
-In addition, we give functions \textbf{set\_type}, \textbf{replace} and \textbf{replace\_leaf} as follows: function \emph{set\_type} takes a Leaf node \emph{b} and a target block\_state\_type \emph{s}, then changes the type of \emph{b} with \emph{s}, finally returns it as a new Leaf node \emph{b'}. function \emph{replace} takes a Block \emph{btree}, two Leaf nodes \emph{b} and \emph{b'} as inputs, then replace the Leaf node \emph{b} with \emph{b'} in \emph{btree}, finally returns the updated Block \emph{btree'}. function \emph{replace\_leaf} takes a Block \emph{btree}, a Leaf node \emph{b} and a Node \emph{btr} as inputs, then replace the Leaf node \emph{b} with \emph{btr} in \emph{btree}, lastly returns the updated Block \emph{btree'}. 
+In addition, we give functions \textbf{set\_type}, \textbf{replace} and \textbf{replace\_leaf} as follows: function \emph{set\_type} takes a Leaf node \emph{b} and a target block\_state\_type \emph{s}, then changes the type of \emph{b} with \emph{s}, finally returns it as a new Leaf node \emph{b'}; function \emph{replace} takes a Block \emph{btree}, two Leaf nodes \emph{b} and \emph{b'} as inputs, then replace the Leaf node \emph{b} with \emph{b'} in \emph{btree}, finally returns the updated Block \emph{btree'}; function \emph{replace\_leaf} takes a Block \emph{btree}, a Leaf node \emph{b} and a Node \emph{btr} as inputs, then replace the Leaf node \emph{b} with \emph{btr} in \emph{btree}, lastly returns the updated Block \emph{btree'}.
 
-Now we give the process of allocation operation. It firstly checks whether there is Block in \emph{bset} that has such \emph{FREE} Leaf nodes whose level is less than or equal to \emph{rlv} by function \emph{exists\_freelevel}. If it returns \emph{False} then the allocation process stops and returns original \emph{bset} and \emph{False}. Otherwise, function \emph{freesets\_maxlevel} returns the maximum level \emph{lmax} among all levels with \emph{FREE} Leaf nodes but less than or equal to \emph{rlv}. Two branches are as follows.
+Now we give the process of allocation operation. It firstly checks whether there is a Block in \emph{bset} that has such \emph{FREE} Leaf nodes whose level is less than or equal to \emph{rlv} by function \emph{exists\_freelevel}. If it returns \emph{False} then the allocation process stops and returns original \emph{bset} and \emph{False}. Otherwise, function \emph{freesets\_maxlevel} returns the maximum level \emph{lmax} among all levels with \emph{FREE} Leaf nodes but less than or equal to \emph{rlv}. Two branches are as follows.
 
 If the \emph{lmax} is equal to requested level \emph{rlv} then: randomly pick up such a Block as \emph{btree}; pick up such a \emph{FREE} Leaf node \emph{l} in level \emph{rlv} from \emph{btree}; invoke \emph{set\_type} to set \emph{l} type \emph{ALLOC} as \emph{l'}; invoke \emph{replace} to update \emph{btree} with \emph{l'} as \emph{btree'}; finally return updated Block set \emph{bset} with \emph{btree'} and \emph{True}.
 
-If the \emph{lamx} is not equal to requested level \emph{rlv} then: randomly pick up such a Block as \emph{btree} who has \emph{FREE} Leaf nodes in level \emph{lmax}; pick up such a \emph{FREE} Leaf node \emph{l} in level \emph{lmax} from \emph{btree}; invoke \emph{split} to split \emph{l} into Node \emph{btr}; invoke \emph{replace\_leaf} to update \emph{btree} with \emph{btr} as \emph{btree'}; finally return updated Block set \emph{bset} with \emph{btree'} and \emph{True}. The definition of allocation operation is as follows.
+If the \emph{lamx} is not equal to requested level \emph{rlv} then: randomly pick up such a Block as \emph{btree} who has \emph{FREE} Leaf nodes in level \emph{lmax}; pick up such a \emph{FREE} Leaf node \emph{l} in level \emph{lmax} from \emph{btree}; invoke \emph{split} to split \emph{l} into Node tree \emph{btr}; invoke \emph{replace\_leaf} to update \emph{btree} with \emph{btr} as \emph{btree'}; finally return updated Block set \emph{bset} with \emph{btree'} and \emph{True}. The definition of allocation operation is as follows.
 
 \begin{definition} [Allocation Operation]
 \end{definition}
@@ -117,7 +117,7 @@ alloc\ &bset\ rlv \triangleq \\
 \vspace{-17pt}
 
 \subsection{Deallocation Model}
-During the deallocation process, if such a situation that four Leaf nodes belonging to a same parent Node are all \emph{FREE} appears, function \textbf{merge} is invoked to merge these Leaf nodes to one Leaf node. It invokes a function \textbf{combine} that takes a Node \emph{n} and returns a new terminal Leaf node \emph{l} \emph{iff} Node \emph{n} has four terminal \emph{FREE} Leaf nodes. Function \emph{merge} takes a Node \emph{n} and recursively invokes \emph{combine} on each sub-node of \emph{n} and \emph{n} itself. A simple example that describes the merging process is showed in Fig. \ref{fig2}.
+During the deallocation process, if such a situation that four Leaf nodes belonging to a same parent Node are all \emph{FREE} appears, function \textbf{merge} is invoked to merge these Leaf nodes to one Leaf node. It invokes a function \textbf{combine} that takes a Node tree \emph{n} and returns a new terminal Leaf node \emph{l} \emph{iff} Node tree \emph{n} has four terminal \emph{FREE} Leaf nodes. Function \emph{merge} takes a Node tree \emph{n} and recursively invokes \emph{combine} on each sub-node of \emph{n} and \emph{n} itself. A simple example that describes the merging process is showed in Fig. \ref{fig2}.
 
 \begin{figure}[htbp]
 	\centering

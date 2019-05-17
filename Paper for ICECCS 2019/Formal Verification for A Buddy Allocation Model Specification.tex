@@ -50,41 +50,34 @@
 
 \hyphenation{op-tical net-works semi-conduc-tor}
 
+\DeclareRobustCommand*{\IEEEauthorrefmark}[1]{
+	\raisebox{0pt}[0pt][0pt]{\textsuperscript{\footnotesize #1}}
+}
+
 \begin{document}
 
-\title{Formal Verification for A Buddy Allocation Model Specification}
+\title{A Verified Buddy Memory Allocation Model}
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Ke Jiang}
-\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
-\textit{Nanyang Technological University}\\
-Singapore, Singapore \\
-johnjiang@ntu.edu.sg}
-\and
-\IEEEauthorblockN{2\textsuperscript{nd} Yongwang Zhao}
-\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
-\textit{Beihang University}\\
-\textit{Beijing Advanced Innovation Center for Big Data and Brain Computing} \\
-\textit{Beihang University}\\
-Beijing, China \\
-zhaoyw@buaa.edu.cn}
-\and
-\IEEEauthorblockN{3\textsuperscript{rd} David San\'{a}n}
-\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
-\textit{Nanyang Technological University}\\
-Singapore, Singapore \\
-sanan@ntu.edu.sg}
-\and
-\IEEEauthorblockN{4\textsuperscript{th} Yang Liu}
-\IEEEauthorblockA{\textit{School of Computer Science and Engineering} \\
-\textit{Nanyang Technological University}\\
-Singapore, Singapore \\
-yangliu@ntu.edu.sg}
+\author{\IEEEauthorblockN{Ke Jiang\IEEEauthorrefmark{1},
+						Yongwang Zhao\IEEEauthorrefmark{2},
+						David San\'{a}n\IEEEauthorrefmark{1},
+						Shuanglong Kan\IEEEauthorrefmark{1},
+						Yang Liu\IEEEauthorrefmark{1}}
+\IEEEauthorblockA{\IEEEauthorrefmark{1}
+	School of Computer Science and Engineering \\
+	Nanyang Technological University, Singapore \\
+	\{johnjiang, sanan, slkan, yangliu\}@ntu.edu.sg}
+\IEEEauthorblockA{\IEEEauthorrefmark{2}
+	School of Computer Science and Engineering \\
+	Beijing Advanced Innovation Center for Big Data and Brain Computing \\
+	Beihang University, Beijing, China \\
+	zhaoyw@buaa.edu.cn}
 }
 
 \maketitle
 
 \begin{abstract}
-Buddy allocation algorithms are widely adopted by memory management systems to manage the address space accessed by applications. However, errors in any stage of the development process of the memory management component, from the specification to the implementation, may lead to critical issues in other components using it. Rigorous mathematical proofs provide strong assurance to the development process. We apply formal methods to ensure the correctness in the specification of a buddy allocation algorithm. In this paper, we use the interactive theorem prover Isabell/HOL to construct a specification for a buddy allocation algorithm consisting on operations to allocate and dispose memory areas. Thence we verify that the operations preserve key invariants over the memory to guarantee functional correctness of the algorithm. Finally, we verify that the operations also preserve integrity of the memory, therefore they do not affect other memory areas previously allocated.
+Buddy allocation algorithms are widely adopted by various memory management systems for managing memory layouts. Rigorous mathematical proofs provide strong assurance to improve confidence on the reliability of a memory management. In this paper, we offer a verified buddy memory allocation model which preserves functional correctness and security property by formal methods. Firstly, we use interactive theorem prover Isabell/HOL to construct a specification for the buddy allocation algorithm consisting of operations to allocate and dispose memory blocks. Then we verify that the specification preserves key invariants over the memory to guarantee functional correctness of the algorithm. Finally, we verify that the specification also preserves integrity of the memory. Therefore, they do not affect other memory blocks previously allocated.
 \end{abstract}
 
 \begin{IEEEkeywords}

@@ -60,7 +60,7 @@ Next Lemma~\ref{pp4} introduces a transition during an indirect allocation proce
 
 The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during the deallocation failure processes. This consequence is result from the Leaf node to be released does not belong to any quad-tree Block, or the type of the Leaf node to be freed is \emph{FREE} already.
 
-\begin{lemma} [Deallocation failure 1]
+\begin{lemma} [Deallocation Failure 1]
 \label{pp5}
 \end{lemma}
 \vspace{-7pt}
@@ -71,7 +71,7 @@ The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during t
 }
 \vspace{-12pt}
 	
-\begin{lemma} [Deallocation failure 2]
+\begin{lemma} [Deallocation Failure 2]
 \label{pp6}
 \end{lemma}
 \vspace{-7pt}
@@ -151,7 +151,7 @@ The buddy allocation specification picks out the most suitable Leaf node and all
 
 The buddy allocation algorithms may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function is executed correctly can not be proved straightway. In order to prove this, we still consider the correctness of the structure to a quad-tree during allocation and deallocation processes. Considering the fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}, a definition is constructed as follows to check whether a quad-tree is such a Node tree. The function \textbf{leaf} is to check whether the tree is a Leaf node.
 
-\begin{definition} [Four Free Leaves Belong to The Same Node]
+\begin{definition} [Four Free Leaves Belong to the Same Node]
 \end{definition}
 \vspace{-7pt}
 {\footnotesize
@@ -285,7 +285,7 @@ The buddy allocation specification guarantees any Block is a Qtree.
 To sum up, in this subsection we introduce preconditions $\&$ postconditions as well as significant invariants to ensure the formal buddy allocation specification preserves a set of properties which guarantee its functional correctness. In next two subsections, we build a security model and prove the specification preserves integrity of the memory structures.
 
 \subsection{A Security Model}\label{sec:securitymodel}
-Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we try to prove the integrity property for buddy allocation specification. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. This part of work is following the work form~\cite{reg_securitymodel}.
+Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we try to prove the integrity property for buddy allocation specification. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. This part of work is following the work from~\cite{reg_securitymodel}.
 
 \subsubsection{Memory State Machine} is designed to be event based. Thus, $\mathcal{S}$ represents the state space and $\mathcal{E}$ is the set of event labels. The state-transition function is characterized by $\varphi$, which has the form of $\varphi: \mathcal{E} \rightarrow \mathbb{P}(\mathcal{S} \times \mathcal{S})$. The state machine must execute from a initial state, therefore, $s_0 \in \mathcal{S}$ which is on behalf of the initial state must be included in this machine. The definition of this state machine is as follows.
 
@@ -348,7 +348,7 @@ In this part, we add interfaces to the buddy allocation specification, and packa
 \subsubsection{Instantiation}
 A global state records all the information like domains and memory resources. A \emph{state} in type \emph{record} mainly consists of the currently running domain (\textbf{Cur}), a collection of entire domains (\textbf{Parset}), a collection of whole memory Blocks (\textbf{Bloset}) and the memory address spaces occupied by the partition (characterized by function \textbf{Par\_Mem: partition $\rightharpoonup$ Mem\_Add}, \emph{Mem\_Add} is in the type of \emph{idset}).
 
-To construct interfaces \textbf{alloc\_memory} and \textbf{free\_memory}, it only needs to update \emph{Par\_Mem} information in \emph{state} according to successful or failing results returned by functions \emph{alloc} and \emph{free}. Another interface function is scheduler, it arbitrarily selects partitions to mark the \emph{Cur} in \emph{state}. These three interface functions are defined as follows. In addition, function \textbf{allocid} returns the \emph{ID} of allocated Leaf node in allocation operation.
+To construct interface functions \textbf{alloc\_memory} and \textbf{free\_memory}, it only needs to update \emph{Par\_Mem} information in \emph{state} according to successful or failing results returned by functions \emph{alloc} and \emph{free}. Another interface function is scheduler, it arbitrarily selects partitions to mark the \emph{Cur} in \emph{state}. These three interface functions are defined as follows. In addition, function \textbf{allocid} returns the \emph{ID} of allocated Leaf node in allocation operation.
 
 \begin{definition} [Allocate Memory Interface]
 \vspace{-7pt}
