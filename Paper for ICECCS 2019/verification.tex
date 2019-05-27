@@ -1,10 +1,10 @@
 \section{Verification}
-In this section we show in Section~\ref{sec:functional} that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness. As a security property, we also prove in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof} that the specification preserves integrity of the memory structures.
+In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}.
 
 \subsection{Functional correctness}\label{sec:functional}
-We use preconditions $\&$ postconditions and invariants to depict and trace the executions of the specification for functional correctness purposes. We give preconditions and postconditions in the first place.
+We use preconditions and postconditions, and invariants to depict and trace the executions of the specification for functional correctness purposes. We give preconditions and postconditions in the first place.
 
-The following Lemma~\ref{pp1} gives such an implication: if any quad-tree Block in \emph{blo\_set} cannot satisfy the precondition: the level of its \emph{FREE} leaf nodes is less than or equal to the value of \emph{rlv}, then nothing is changed result from allocation failure.
+The following Lemma~\ref{pp1} gives such an implication: if any quad-tree Block in \emph{blo\_set} cannot satisfy the precondition that the levels of its \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}, then nothing is changed resulting from allocation failure.
 
 \begin{lemma} [Allocation Failure]
 \label{pp1}
@@ -17,7 +17,7 @@ The following Lemma~\ref{pp1} gives such an implication: if any quad-tree Block 
 }
 \vspace{-12pt}
 
-Then Lemma~\ref{pp2} and~\ref{pp3} respectively describes a transition during a direct allocation process that the \emph{FREE} leaf node to be allocated no longer belongs to free sets and is a part of allocated sets. A direct allocation precess means that the existence of such a quad-tree Block in \emph{blo\_set}, the level of whose \emph{FREE} leaf nodes is less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}, therefore the function picks up a \emph{FREE} leaf node in level \emph{rlv} to allocate.
+Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process that the \emph{FREE} Leaf node to be allocated no longer belongs to free sets and is a part of allocated sets. A direct allocation precess means that the existence of such a quad-tree Block in \emph{blo\_set}, the level of whose \emph{FREE} leaf nodes is less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
 
 \begin{lemma} [Freesets for Direct Allocation]
 \label{pp2}
@@ -43,7 +43,7 @@ Then Lemma~\ref{pp2} and~\ref{pp3} respectively describes a transition during a 
 }
 \vspace{-12pt}
 
-Next Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a quad-tree Block in \emph{blo\_set}, the level of whose \emph{FREE} leaf nodes is less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} leaf nodes is less than the value of \emph{rlv}. With this precondition, \emph{split} operation is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node that satisfies the request appears. Then postcondition guarantees that a new Leaf node is added into allocated set while it dose not belong to this set previously.
+Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{blo\_set} that the level of whose \emph{FREE} Leaf nodes is less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
 
 \begin{lemma} [Allocsets for Indirect Allocation]
 \label{pp4}
@@ -58,7 +58,7 @@ Next Lemma~\ref{pp4} introduces a transition during an indirect allocation proce
 }
 \vspace{-12pt}
 
-The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during the deallocation failure processes. This consequence is result from the Leaf node to be released does not belong to any quad-tree Block, or the type of the Leaf node to be freed is \emph{FREE} already.
+The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during the deallocation failure processes. This consequence results from the Leaf node to be released does not belong to any quad-tree Block, or the type of the Leaf node to be freed is \emph{FREE} already.
 
 \begin{lemma} [Deallocation Failure 1]
 \label{pp5}
@@ -83,7 +83,7 @@ The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during t
 }
 \vspace{-12pt}
 
-The last Lemma~\ref{pp7} ensures a correct transition during a deallocation success process. It describes that the Leaf node which is to be released dose not belong to allocated set any more.
+Lemma~\ref{pp7} ensures a correct transition during a deallocation success process. It describes that the Leaf node, which is to be released, dose not belong to allocated set any more.
 
 \begin{lemma} [Allocsets for Deallocation Success]
 \label{pp7}
@@ -96,10 +96,10 @@ The last Lemma~\ref{pp7} ensures a correct transition during a deallocation succ
 }
 \vspace{-12pt}
 
-After giving these lemmas for preconditions $\&$ postconditions, we prove that our buddy allocation specification satisfies them so that it meets the functional expectations. The first theorem we prove as follows.
+After giving these lemmas for preconditions and postconditions, we prove that our buddy allocation specification satisfies the functional expectations. The first theorem we prove is as follows.
 
 \begin{theorem}
-The buddy allocation specification satisfies all the lemmas for preconditions $\&$ postconditions above.
+The buddy allocation specification satisfies all the lemmas for preconditions and postconditions above.
 \end{theorem}
 
 Next, we introduce invariants to guarantee functional correctness of the specification from another point of view. Firstly, we ensure that the allocation operation picks out \emph{The Most Suitable Leaf Node} in Definition~\ref{mostsuitable}. Two properties are proved: the correctness of the mapping function from the size of requested memory block to the level of the quad-tree; the correctness of the quad-tree hierarchical structure. Here are these two properties.
@@ -129,7 +129,7 @@ Two lemmas ensure the correctness of Definition~\ref{mostsuitable}.
 }
 \vspace{-12pt}
 
-With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. Then we introduce a lemma alone to prove the correctness of the hierarchical structure of a quad-tree. Function \textbf{root} checks whether the tree is a Root tree and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
+With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. Then we introduce a single lemma to prove the correctness of the hierarchical structure of a quad-tree. Function \textbf{root} checks whether the tree is a root tree, and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
 
 \begin{lemma} [Hierarchical Structure of a Quad-tree]
 \end{lemma}
@@ -149,7 +149,7 @@ Until now, we have already proved the correctness of the mapping function \emph{
 The buddy allocation specification picks out the most suitable Leaf node and allocate it on the correct level in a quad-tree.
 \end{theorem}
 
-The buddy allocation algorithms may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function is executed correctly can not be proved straightway. In order to prove this, we still consider the correctness of the structure to a quad-tree during allocation and deallocation processes. Considering the fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}, a definition is constructed as follows to check whether a quad-tree is such a Node tree. The function \textbf{leaf} is to check whether the tree is a Leaf node.
+The buddy allocation algorithms may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function is executed correctly can not be proved straightway. In order to prove this, we still consider the correctness of the structure to a quad-tree during allocation and deallocation processes. Considering the fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. The function \textbf{leaf} is to check whether the tree is a Leaf node.
 
 \begin{definition} [Four Free Leaves Belong to the Same Node]
 \end{definition}
