@@ -2,9 +2,9 @@
 In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}.
 
 \subsection{Functional correctness}\label{sec:functional}
-We use preconditions and postconditions, and invariants to depict and trace the executions of the specification for functional correctness purposes. We give preconditions and postconditions in the first place.
+We use preconditions and postconditions, as well as invariants to depict and trace the executions of the specification for functional correctness purposes. We give preconditions and postconditions in the first place.
 
-The following Lemma~\ref{pp1} gives such an implication: if any quad-tree Block in \emph{blo\_set} cannot satisfy the precondition that the levels of its \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}, then nothing is changed resulting from allocation failure.
+The following Lemma~\ref{pp1} gives such an implication: if any Block tree in \emph{blo\_set} cannot satisfy the precondition, where the levels of its \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}, then nothing is changed resulting from allocation failure.
 
 \begin{lemma} [Allocation Failure]
 \label{pp1}
@@ -17,7 +17,7 @@ The following Lemma~\ref{pp1} gives such an implication: if any quad-tree Block 
 }
 \vspace{-12pt}
 
-Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process that the \emph{FREE} Leaf node to be allocated no longer belongs to free sets and is a part of allocated sets. A direct allocation precess means that the existence of such a quad-tree Block in \emph{blo\_set}, the level of whose \emph{FREE} leaf nodes is less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
+Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process. It says that the \emph{FREE} Leaf node which is to be allocated no longer belongs to free sets, and is a part of allocated sets. A direct allocation precess means that the existence of such a Block tree in \emph{blo\_set}, the levels of whose \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
 
 \begin{lemma} [Freesets for Direct Allocation]
 \label{pp2}
@@ -43,7 +43,7 @@ Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a d
 }
 \vspace{-12pt}
 
-Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{blo\_set} that the level of whose \emph{FREE} Leaf nodes is less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
+Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{blo\_set}, that the levels of whose \emph{FREE} Leaf nodes are less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
 
 \begin{lemma} [Allocsets for Indirect Allocation]
 \label{pp4}
@@ -58,7 +58,7 @@ Lemma~\ref{pp4} introduces a transition during an indirect allocation process. T
 }
 \vspace{-12pt}
 
-The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed during the deallocation failure processes. This consequence results from the Leaf node to be released does not belong to any quad-tree Block, or the type of the Leaf node to be freed is \emph{FREE} already.
+The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed because of the deallocation failure. This consequence results from the Leaf node which is to be released does not belong to any Block tree in \emph{blo\_set}, or the type of the Leaf node to be freed is \emph{FREE} already.
 
 \begin{lemma} [Deallocation Failure 1]
 \label{pp5}
@@ -96,16 +96,13 @@ Lemma~\ref{pp7} ensures a correct transition during a deallocation success proce
 }
 \vspace{-12pt}
 
-After giving these lemmas for preconditions and postconditions, we prove that our buddy allocation specification satisfies the functional expectations. The first theorem we prove is as follows.
+After giving these lemmas for preconditions and postconditions, we prove that our buddy allocation specification satisfies these behavior expectations. The first theorem we prove is as follows.
 
 \begin{theorem}
-The buddy allocation specification satisfies all the lemmas for preconditions and postconditions above.
+The buddy allocation specification meets all behavior expectations described by preconditions and postconditions above.
 \end{theorem}
 
-Next, we introduce invariants to guarantee functional correctness of the specification from another point of view. Firstly, we ensure that the allocation operation picks out
-a correct and suitable Leaf node. Two properties are proved: the correctness of the function \emph{output\_level}, mapping the size of requested memory block to the level of the quad-tree in Definition~\ref{mostsuitable}; the correctness of the hierarchical structure in a quad-tree. Here are these two properties.
-
-Two lemmas ensure the correctness of Definition~\ref{mostsuitable}.
+Next, we introduce invariants to guarantee functional correctness of the specification from memory layouts perspective. Firstly, we ensure that the allocation operation picks out a correct and suitable Leaf node. Two properties are proved: the correctness of the function \emph{output\_level}, mapping the size of requested memory block to the level of the quad-tree in Definition~\ref{mostsuitable}; the correctness of the hierarchical structure in a quad-tree. Here are two lemmas that ensure the correctness of Definition~\ref{mostsuitable}.
 
 \begin{lemma} [Correctness of Function output\_level 1]
 \end{lemma}
@@ -130,7 +127,7 @@ Two lemmas ensure the correctness of Definition~\ref{mostsuitable}.
 }
 \vspace{-12pt}
 
-With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. Then we introduce a single lemma to prove the correctness of the hierarchical structure of a quad-tree. Function \textbf{root} checks whether the tree is a root tree, and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
+With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. Then we introduce a single lemma to prove the correctness of the hierarchical structure of a quad-tree. It says that the level of root tree is zero, and the level of any child node is one more than its immediate father node. Function \textbf{root} checks whether the tree is a root tree, and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
 
 \begin{lemma} [Hierarchical Structure of a Quad-tree]
 \end{lemma}
@@ -150,7 +147,7 @@ Until now, we have already proved the correctness of the mapping function \emph{
 The buddy allocation specification picks out a correct Leaf node and allocate it on the right level in the quad-tree.
 \end{theorem}
 
-The buddy memory allocation algorithm may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function executes correctly can not be proved straightway. In order to solve this, we still consider the correctness of the structure in a quad-tree during allocation and deallocation processes. We consider a fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. Function \textbf{leaf} is to check whether the tree is a Leaf node.
+The buddy memory allocation algorithm may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function executes correctly can not be proved straightway. In order to solve this, we still consider the correctness of the structure in a quad-tree during allocation and deallocation processes. We consider a fact that there is not such a Node tree, whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. Function \textbf{leaf} is to check whether the tree is a Leaf node.
 
 \begin{definition} [Four Free Leaves Belong to the Same Node]
 \end{definition}
@@ -163,7 +160,7 @@ is\_FFL\ btree \triangleq\ &\forall chtree \in child\ btree.\ leaf\ chtree \\
 }
 \vspace{-12pt}
 
-Fig. \ref{fig2} can explain this definition well. As the first picture shows, the subtree in the lower left corner is such a Node tree because its four child nodes are all Leaf nodes and their types are \emph{FREE}. Therefore, merge function is necessary to handle this situation. The followings are lemmas that ensure the non-existence of such \emph{FFL} trees after allocation and deallocation operations if they guarantee non-existence of such \emph{FFL} trees in the assuming of implication expressions.
+Fig. \ref{fig2} can explain this definition well. As the first picture shows, the subtree in the lower left corner is such a Node tree, because its four child nodes are all Leaf nodes and their types are \emph{FREE}. Therefore, merge function is necessary to handle this situation. The followings are lemmas that ensure the non-existence of such \emph{FFL} trees after allocation and deallocation operations, if they guarantee non-existence of such \emph{FFL} trees in the assuming of implication expressions.
 
 \begin{lemma} [Non-existence of FFL during Allocation]
 \label{allocffl}
@@ -189,15 +186,15 @@ Fig. \ref{fig2} can explain this definition well. As the first picture shows, th
 }
 \vspace{-12pt}
 
-We consider such a situation: operation system initialize the whole memory into a series of free blocks in different sizes, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initialization state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{allocffl} and~\ref{deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter operation system performs allocation or deallocation operations. Therefore, we can make sure the whole memory system preserves this property. We have this theorem as follows. Furthermore, it proves that the buddy allocation specification reduces the fragmentation by merge operation.
+We consider such a situation: operating system initialize the whole memory into a series of free blocks in different sizes, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initialization state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{allocffl} and~\ref{deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter operating system performs allocation or deallocation operations. Therefore, we can make sure the whole memory system preserves this property. We have this theorem as follows. Furthermore, it proves that the buddy allocation specification reduces the fragmentation by merge operation.
 
 \begin{theorem}
 The buddy allocation specification guarantees non-existence of FFL trees among all memory blocks.
 \end{theorem}
 
-In the end, we prove two significant properties: memory isolation and non-leakage. The first one is to ensure non-existence of the overlap in address spaces. The isolation makes sure that memory blocks of a domain can not be maliciously overwritten by others. Another property the non-leakage guarantees that available memory blocks (including occupied and free ones) are not getting less and less. In other words, it protects the integrity of address spaces.
+In the end, we prove two significant properties: memory isolation and non-leakage. The first one is to ensure non-existence of the overlap in address spaces. The isolation makes sure that memory blocks of a domain can not be maliciously overwritten by others. Another property non-leakage guarantees that available memory blocks (including occupied and free ones) are not getting less and less. In other words, it protects the integrity of address spaces.
 
-Now we begin with the memory isolation. We provisionally use type \emph{ID} in basic type \emph{nat} to represent a contiguous address occupied by a memory block in Section~\ref{statedes}. To link \emph{ID} to a real address, two things have to be introduced and proved: 1. a mapping function between a \emph{ID} and a real address as well as its correctness; 2. the one-to-one uniqueness between a \emph{ID} and a real address. We leave this part to the further work for a more detailed specification proof, in other words the design level of the buddy allocation. In this paper, we are not going to introduce real addresses into this specification, and we consider the correctness of the mapping function and promise its the uniqueness. Therefore, with these assumptions, isolation of address spaces means that all \emph{IDs} which leaf nodes brings with are unique.
+Now we begin with the memory isolation. We provisionally use type \emph{ID} in basic type \emph{nat} to represent a contiguous address occupied by a memory block in Section~\ref{statedes}. To link \emph{ID} to a real address, two things have to be introduced and proved: 1. a mapping function between a \emph{ID} and a real address as well as its correctness; 2. the one-to-one uniqueness between a \emph{ID} and a real address. We leave this part to the further work for a more detailed specification proof, in other words the design level of the buddy allocation. In this paper, we are not going to introduce real addresses into this specification, and we consider the correctness of the mapping function and promise its the uniqueness. Therefore, with these assumptions, isolation of address spaces means that all \emph{IDs} which Leaf nodes brings with are unique.
 
 The following definition introduces a judgment whether two Leaf nodes have the same \emph{ID}. Function \textbf{get\_id} gives the \emph{ID} a Leaf node brings with.
 
@@ -235,13 +232,13 @@ is\_different\ blo\_set \longrightarrow is\_different\ fst\ (free\ blo\_set\ b)
 }
 \vspace{-12pt}
 
-Let us go back to the initialization state. The whole memory is divided into a finite number of free root nodes. We can easily guarantee that all \emph{IDs} these root nodes bring with are unique and initialize the collection \emph{idset} with these used \emph{IDs}. Then according to the lemmas above, any state after initialization satisfies \emph{Different IDs} no matter operation system performs allocation or deallocation operations. As a result, we can guarantee the whole memory system preserve \emph{Different IDs}. We have this theorem as follows.
+Let us go back to the initialization state. The whole memory is divided into a finite number of free root nodes. We can easily guarantee that all \emph{IDs} these root nodes bring with are unique, and we initialize the collection \emph{idset} with these used \emph{IDs}. Then according to the lemmas above, any state after initialization satisfies \emph{Different IDs} no matter operation system performs allocation or deallocation operations. As a result, we can guarantee the whole memory system preserve \emph{Different IDs}. We have this theorem as follows.
 
 \begin{theorem}
 The buddy allocation specification ensures all IDs of Leaf nodes are unique.
 \end{theorem}
 
-Finally, with the assumptions that the correctness of the mapping function between a \emph{ID} and a real address and promising its uniqueness, we prove the specification the property of the isolation of memory address spaces.
+Finally, with the assumptions that the correctness of the mapping function between a \emph{ID} and a real address, and promising its uniqueness, we prove the specification preserves the isolation of memory address spaces.
 
 Next is for the non-leakage of memory blocks. We use a quad-tree structure and map all the blocks into the Leaf nodes of these trees, thence the non-leakage means that all the Leaf nodes (including occupied and free ones) are recorded in use. If we can infer a correct and certain relation between the number of Leaf nodes and Non-leaf nodes of a quad-tree, we can prove that all the Leaf nodes are in use and none of them is forgotten. To achieve this, the first step is to search and prove a certain relation between the numbers of Leaf nodes and Non-leaf nodes in a quad-tree. Through exploration, we have found and proved such a relation as follows. Functions \textbf{get\_leaf} and \textbf{get\_node} take a Block and return Leaf nodes set and Non-leaf nodes set respectively.
 
