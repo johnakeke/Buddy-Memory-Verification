@@ -102,7 +102,8 @@ After giving these lemmas for preconditions and postconditions, we prove that ou
 The buddy allocation specification satisfies all the lemmas for preconditions and postconditions above.
 \end{theorem}
 
-Next, we introduce invariants to guarantee functional correctness of the specification from another point of view. Firstly, we ensure that the allocation operation picks out \emph{The Most Suitable Leaf Node} in Definition~\ref{mostsuitable}. Two properties are proved: the correctness of the mapping function from the size of requested memory block to the level of the quad-tree; the correctness of the quad-tree hierarchical structure. Here are these two properties.
+Next, we introduce invariants to guarantee functional correctness of the specification from another point of view. Firstly, we ensure that the allocation operation picks out
+a correct and suitable Leaf node. Two properties are proved: the correctness of the function \emph{output\_level}, mapping the size of requested memory block to the level of the quad-tree in Definition~\ref{mostsuitable}; the correctness of the hierarchical structure in a quad-tree. Here are these two properties.
 
 Two lemmas ensure the correctness of Definition~\ref{mostsuitable}.
 
@@ -143,13 +144,13 @@ With these two lemmas, we make sure the correctness of the mapping function \emp
 }	
 \vspace{-12pt}
 
-Until now, we have already proved the correctness of the mapping function \emph{output\_level} and the hierarchical structure of a quad-tree. Then we can deduce the following theorem to guarantee the property of picking out \emph{The Most Suitable Leaf Node}.
+Until now, we have already proved the correctness of the mapping function \emph{output\_level} and the hierarchical structure of a quad-tree. Then we can deduce the following theorem to guarantee the property of picking out a correct and suitable Leaf node.
 
 \begin{theorem}
-The buddy allocation specification picks out the most suitable Leaf node and allocate it on the correct level in a quad-tree.
+The buddy allocation specification picks out a correct Leaf node and allocate it on the right level in the quad-tree.
 \end{theorem}
 
-The buddy allocation algorithms may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function is executed correctly can not be proved straightway. In order to prove this, we still consider the correctness of the structure to a quad-tree during allocation and deallocation processes. Considering the fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. The function \textbf{leaf} is to check whether the tree is a Leaf node.
+The buddy memory allocation algorithm may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function executes correctly can not be proved straightway. In order to solve this, we still consider the correctness of the structure in a quad-tree during allocation and deallocation processes. We consider a fact that there is not such a Node tree whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. Function \textbf{leaf} is to check whether the tree is a Leaf node.
 
 \begin{definition} [Four Free Leaves Belong to the Same Node]
 \end{definition}
@@ -198,7 +199,7 @@ In the end, we prove two significant properties: memory isolation and non-leakag
 
 Now we begin with the memory isolation. We provisionally use type \emph{ID} in basic type \emph{nat} to represent a contiguous address occupied by a memory block in Section~\ref{statedes}. To link \emph{ID} to a real address, two things have to be introduced and proved: 1. a mapping function between a \emph{ID} and a real address as well as its correctness; 2. the one-to-one uniqueness between a \emph{ID} and a real address. We leave this part to the further work for a more detailed specification proof, in other words the design level of the buddy allocation. In this paper, we are not going to introduce real addresses into this specification, and we consider the correctness of the mapping function and promise its the uniqueness. Therefore, with these assumptions, isolation of address spaces means that all \emph{IDs} which leaf nodes brings with are unique.
 
-The following definition introduces a judgment whether two Leaf nodes have the same \emph{ID}. Function \textbf{ID} gives the \emph{ID} a Leaf node brings with.
+The following definition introduces a judgment whether two Leaf nodes have the same \emph{ID}. Function \textbf{get\_id} gives the \emph{ID} a Leaf node brings with.
 
 \begin{definition} [Different IDs]
 \vspace{-7pt}
@@ -207,7 +208,7 @@ The following definition introduces a judgment whether two Leaf nodes have the s
 \begin{align*}
 &is\_different\ blo\_set \triangleq \\
 &\forall b \in blo\_set.\ \forall l \in set\ b.\ (\nexists l'.\ l' \in set\ (SOME\ b.\ b \in blo\_set) \\
-&\ \ \ \ \wedge l' \ne l \wedge ID\ l' = ID\ l)
+&\ \ \ \ \wedge l' \ne l \wedge get\_id\ l' = get\_id\ l)
 \end{align*}
 }
 \vspace{-12pt}
@@ -282,7 +283,7 @@ In the end, we can prove that all quad-trees hold this relation between the numb
 The buddy allocation specification guarantees any Block is a Qtree.
 \end{theorem}
 
-To sum up, in this subsection we introduce preconditions $\&$ postconditions as well as significant invariants to ensure the formal buddy allocation specification preserves a set of properties which guarantee its functional correctness. In next two subsections, we build a security model and prove the specification preserves integrity of the memory structures.
+To sum up, in this subsection we introduce preconditions and postconditions as well as significant invariants to ensure the formal buddy allocation specification preserves a set of properties which guarantee its functional correctness. In next two subsections, we build a security model and prove the specification preserves integrity of the memory structures.
 
 \subsection{A Security Model}\label{sec:securitymodel}
 Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we try to prove the integrity property for buddy allocation specification. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. This part of work is following the work from~\cite{reg_securitymodel}.
