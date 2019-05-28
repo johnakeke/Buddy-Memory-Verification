@@ -20,16 +20,16 @@
 \newcommand{\defprefix}{Definition}
 \newcommand{\lemmaprefix}{Lemma}
 \newcommand{\theoremprefix}{Theorem}
-\usepackage{soul}
-\newcommand{\mycomment}[1]{{\color{red}[#1]}}
-\newcommand{\correct}[2]{{\color{red}\st{#1}} {\color{blue}#2}}
+
 \newcommand{\equidom}[3]{{#1}\stackrel{#2}{\sim}{#3}}
 \makeatletter
 \newcommand{\superimpose}[2]{{\ooalign{$#1\@firstoftwo#2$\cr\hfil$#1\@secondoftwo#2$\hfil\cr}}}
 \makeatother
 \newcommand{\interf}{\leadsto}
 \newcommand{\ninterf}{\mathrel{\mathpalette\superimpose{{\slash}{\leadsto}}}}
-
+\usepackage{soul}
+\newcommand{\mycomment}[1]{{\color{red}[#1]}}
+\newcommand{\correct}[2]{{\color{red}\st{#1}} {\color{blue}#2}}
 \renewcommand{\IEEEQED}{}
 
 \isabellestyle{it}
@@ -92,7 +92,42 @@ Memory Specification, Formal Verification, Functional Correctness, Security.
 \input{verification}
 \input{conclusion}
 
-\bibliographystyle{IEEEtran}
-\bibliography{IEEEabrv,reference}
+\begin{thebibliography}{00}
+	\bibitem{reg_sahebolamri}
+	A. Sahebolamri, S. Constable and S. J. Chapin. A Formally Verified Heap Allocator, Electrical Engineering and Computer Science, 2018, p. 182.
+	
+	\bibitem{reg_knuth}
+	D. E. Knuth. Dynamic storage allocation. The Art of Computer Programming, volume 1, section 2.5, 1968, p. 435–455.
+	
+	\bibitem{reg_mangano}
+	F. Mangano, S. Duquennoy and N. Kosmatov. Formal verification of a memory allocation module of Contiki with FRAMA-C: A case study, the 11th International Conference on Risks and Security of Internet and Systems, 2016, p. 114–120.
+	
+	\bibitem{reg_noninterference}
+	J. A. Goguen and J. Meseguer. Security Policies and Security Models, Proceedings of the IEEE Computer Society Symposium on Research in Security and Privacy, 1982, p. 11-20.
+	
+	\bibitem{reg_knowlton}
+	K. C. Knowlton. A fast storage allocator, Commun. ACM, 1965, p. 623-624.
+	
+	\bibitem{reg_higham}
+	L. Higham, J. Kawash and N. Verwaal. Defining and comparing memory consistency models, Proceedings of the 10th International Conference on Parallel and Distributed Computing Systems, 1997, p. 349–356.
+	
+	\bibitem{reg_mckusick}
+	M. K. McKusick, K. Bostic, M. J. Karels, and J. S. Quarterman. The Design and Implementation of the 4.4 BSD Operating System, 1996.
+	
+	\bibitem{reg_marti}
+	N. Marti, R. Affeldt and A. Yonezawa. Formal Verification of the Heap Manager of an Operating System Using Separation Logic, International Conference on Formal Engineering Methods, ICFEM: Formal Methods and Software Engineering, 2006, p. 400-419.
+	
+	\bibitem{reg_blazy}
+	S. Blazy and X. Leroy. Formal Verification of a Memory Model for C-Like Imperative Languages, ICFEM: Formal Methods and Software Engineering, 2005, p. 280-299.
+	
+	\bibitem{reg_Isabelle/HOL}
+	T. Nipkow, L. C. Paulson and M. Wenzel. Isabelle/HOL-A Proof Assistant for Higher-Order Logical, volume 2283 of LNCS. Springer-Verlag, 2002.
+	
+	\bibitem{reg_mansky}
+	W. Mansky, G. Dmitri and S. Zdancewic. An Axiomatic Specification for Sequential Memory Models, Computer Aided Verification, July 2015, p. 413-428.
+	
+	\bibitem{reg_securitymodel}
+	Y. Zhao, D. Sanan, F. Zhang and Y. Liu. Refinement-based Specification and Security Analysis of Separation Kernels, IEEE Transactions on Depandable and Secure Computing, Volume 16, Issue 1, January 2019, p. 127-141.
+\end{thebibliography}
 
 \end{document}
