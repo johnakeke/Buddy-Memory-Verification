@@ -20,7 +20,9 @@
 \newcommand{\defprefix}{Definition}
 \newcommand{\lemmaprefix}{Lemma}
 \newcommand{\theoremprefix}{Theorem}
-
+\usepackage{soul}
+\newcommand{\mycomment}[1]{{\color{red}[#1]}}
+\newcommand{\correct}[2]{{\color{red}\st{#1}} {\color{blue}#2}}
 \newcommand{\equidom}[3]{{#1}\stackrel{#2}{\sim}{#3}}
 \makeatletter
 \newcommand{\superimpose}[2]{{\ooalign{$#1\@firstoftwo#2$\cr\hfil$#1\@secondoftwo#2$\hfil\cr}}}
