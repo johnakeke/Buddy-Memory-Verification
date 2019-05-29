@@ -1,19 +1,17 @@
 \section{Background}
-In this section, we give the necessary backgrounds \correct{for}{on the} buddy memory allocation algorithms and Isabelle/HOL theorem prover.
+In this section, we give the necessary backgrounds for buddy memory allocation algorithms and Isabelle/HOL theorem prover.
 
 \subsection{Buddy Allocation Algorithms}
-According to the algorithms, free blocks of all possible sizes are maintained in a multilevel list. As a result, it is easy to find a block in requested size if one is available. If there is no block in requested size, allocation operation will search for the first nonempty free list for blocks, whose size is bigger than requested size. Then a large block which is picked from the nonempty free list is split. It is divided into two smaller blocks and each smaller block becomes an unique buddy to the other. If the size of smaller block is still too large, one of the two smaller blocks is split again. The split process stops until one block in requested size appears. Then one of the available blocks is marked as occupied and returned to the requesting application. The others are added to the appropriate free lists.
+Buddy allocation algorithms consist of two main operations: allocation and deallocation of memory blocks. It uses multilevel free linked-list to manage free blocks. All free blocks with same size are linked in the same level in multilevel list. With this list, it is easy to find a free block in requested size if one is available. If one is available, it is directly picked from the head of list in this level. If not, allocation operation searches for the first no-empty free list for blocks, whose size is bigger than requested size. Then, one block which is picked from this no-empty free list is split. It is divided into two smaller blocks, and each smaller block becomes an unique buddy to the other. If the size of smaller block is still too large, one of the two smaller blocks is split again. The split process stops until one block meeting requested size. Then one of the available blocks is returned to the requesting applications. At the same time, this block is marked as occupied in multilevel free bitmap, which is another important structure managing the usage state of each block.
 
-When a block is deallocated, the algorithms check whether the block can be merged. A split block can only be merged with its unique buddy block, which then reforms the larger block they were split from. Among this process, the algorithms apply a flag bit strategy to quickly check if blocks belonging to the same parent are free, in order to decide whether to merge these blocks into one block. With this way, buddy memory system has small external fragmentation.
+When a block is deallocated, the algorithms check whether the block can be merged. A split block can only be merged with its unique buddy block, which then reforms the larger block they were split from. Among this process, the algorithms search multilevel free bitmap to quickly check if blocks belonging to the same parent are free, in order to decide whether to merge these blocks into one block. With this way, buddy memory system has small external fragmentation. Fig. \ref{fig3} describes a moment in memory system using multilevel free linked-list and multilevel free bitmap.
 
-To implement buddy allocation algorithms, it applies two important data structures multilevel free linked-list and multilevel free bitmap. The block to be allocated or deallocated is directly picked from the head of linked-list or added into the tail. Bitmap uses 0 and 1 to implement the flag bit strategy. Fig. \ref{fig3} describes a moment in memory system using these two date structures.
-
-\begin{figure}[htbp]
+\begin{figure*}[htbp]
 	\centering
-	\includegraphics[width=0.5\textwidth]{fig3.pdf}
+	\includegraphics[width=1\textwidth]{fig3.pdf}
 	\caption{Structures in Buddy Allocation Algorithms}
 	\label{fig3}
-\end{figure}
+\end{figure*}
 
 \subsection{Isabelle/HOL}
 We use \correct{interactive theorem prover Isabelle/HOL}{the Isabelle/HOL interactive theorem prover}~\cite{reg_Isabelle/HOL} to conduct the specification and verification of the memory management. Isabelle/HOL is a higher order logic theorem prover, using a typed lambda calculus-like functional language for specifications.
