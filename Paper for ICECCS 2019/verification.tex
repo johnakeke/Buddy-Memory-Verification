@@ -1,315 +1,374 @@
 \section{Verification}
 In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}.
+All the lemmas and theorems present in this section have been proven in the Isabelle/HOL theorem prover. We omit the proofs due to lack of space, but the interested reader can access the mechanize proofs in the project website~\footnote{www.ntu.securify.es/buddyallocator}
 
 \subsection{Functional correctness}\label{sec:functional}
-We use preconditions and postconditions, as well as invariants to depict and trace the executions of the specification for functional correctness purposes. We give preconditions and postconditions in the first place.
+We first formulate and prove the desired properties for the allocation and deallocation services with regards to preservation of the memory layout. Note that models for \textbf{alloc} and \textbf{free} return a tuple $(BlockTree \times Bool)$, where the first element is the new memory layout, and the second one indicates the success or failure of the function. For simplicity on the presentation of the lemmas we consider that the models only return the new state of the memory layout.
+\subsubsection{Allocation}\label{sec:functionalalloc}
 
-The following Lemma~\ref{pp1} gives such an implication: if any Block tree in \emph{blo\_set} cannot satisfy the precondition, where the levels of its \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}, then nothing is changed resulting from allocation failure.
+We first show that the allocation service does not change the state when none of the memory pools in a set $b\_set$ have any free block big enough to allocate a request of size $rs$. 
 
 \begin{lemma} [Allocation Failure]
-\label{pp1}
+\label{lemma:no_free_space}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-\neg exists\_freelevel\ blo\_set\ rlv \longrightarrow fst\ (alloc\ blo\_set\ rlv) = blo\_set
+\neg exists\_freelevel\ b\_set\ \Delta_{rs} \longrightarrow (alloc\ b\_set\ \Delta_{rs}) = b\_set
 \end{align*}
 }
 \vspace{-12pt}
 
-Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process. It says that the \emph{FREE} Leaf node which is to be allocated no longer belongs to free sets, and is a part of allocated sets. A direct allocation precess means that the existence of such a Block tree in \emph{blo\_set}, the levels of whose \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
+As described in Section~\ref{sec:buddy} to allocate a memory block of size $rs$, there must be a free block on a level lower or equal than $\Delta_{rs}$. So under the assumption that there does not exist such a block, the allocation procedure leaves the state unchanged.
 
-\begin{lemma} [Freesets for Direct Allocation]
-\label{pp2}
-\end{lemma}
-\vspace{-7pt}
-{\footnotesize
-\begin{align*}
-&(exists\_freelevel\ blo\_set\ rlv \wedge freesets\_maxlevel\ blo\_set\ rlv = rlv) \\ &\longrightarrow (\exists l.\ l \in freesets\ blo\_set \wedge l \notin freesets\ fst\ (alloc\ blo\_set\ rlv) \\
-&\ \ \ \ \ \ \wedge freesets\ blo\_set = freesets\ fst\ (alloc\ blo\_set\ rlv) \cup \lbrace l \rbrace)
-\end{align*}
-}
-\vspace{-12pt}
+Then we show that if there is a memory pool with a block big enough to allocate the requested size $rs$, then \textbf{alloc} adds an allocated block at level $\Delta_{rs}$. We first split the lemma in two cases. The first case to the case in which level $\Delta_{rs}$ has free blocks, and hence the free block is not split but modified, it is shown in lemma~\ref{lemma:free_min2}. The second case is when $\Delta_{rs}$ does not have free blocks, and hence a free block in a level $l < \Delta_{rs}$ is split till reach level $\Delta_{rs}$ and it is shown in lemma lemma~\ref{lemma:free_nomin}.
+
+%Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process. It says that the \emph{FREE} Leaf node which is to be allocated no longer belongs to free sets, and is a part of allocated sets. A direct allocation precess means that the existence of such a Block tree in \emph{b\_set}, the levels of whose \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
+
 
 \begin{lemma} [Allocsets for Direct Allocation]
-\label{pp3}
+\label{lemma:free_min2}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-&(exists\_freelevel\ blo\_set\ rlv \wedge freesets\_maxlevel\ blo\_set\ rlv = rlv) \\ &\longrightarrow (\exists l.\ l \notin allocsets\ blo\_set\ \wedge l \in allocsets\ fst\ (alloc\ blo\_set\ rlv) \\
-&\ \ \ \ \ \ \ \wedge allocsets\ fst\ (alloc\ blo\_set\ rlv) = allocsets\ blo\_set \cup \lbrace l \rbrace)
+&exists\_freelevel\ b\_set\ \Delta_{rs} \wedge freesets\_maxlevel\ b\_set\ \Delta_{rs} = \Delta_{rs}\longrightarrow\\ 
+& \exists l.\ l \notin allocsets\ b\_set\ \wedge l \in allocsets\ (alloc\ b\_set\ \Delta_{rs}) \wedge  \\
+&\ \ \ \ \ \ \ allocsets\ (alloc\ b\_set\ \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace) \wedge  \\
+&\ \ \ \ \ \ \ level (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs}
 \end{align*}
 }
 \vspace{-12pt}
 
-Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{blo\_set}, that the levels of whose \emph{FREE} Leaf nodes are less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
+%Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{b\_set}, that the levels of whose \emph{FREE} Leaf nodes are less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
 
 \begin{lemma} [Allocsets for Indirect Allocation]
-\label{pp4}
+\label{lemma:free_nomin}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-&(exists\_freelevel\ blo\_set\ rlv \wedge freesets\_maxlevel\ blo\_set\ rlv \neq rlv) \\
-&\longrightarrow (\exists l.\ l \notin allocsets\ blo\_set \wedge l \in allocsets\ fst\ (alloc\ blo\_set\ rlv) \\
-&\wedge allocsets\ fst\ (alloc\ blo\_set\ rlv) = allocsets\ blo\_set \cup \lbrace l \rbrace)
+&exists\_freelevel\ b\_set\  \Delta_{rs} \wedge freesets\_maxlevel\ b\_set\  \Delta_{rs} \neq  \Delta_{rs} \longrightarrow  \\
+&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\  \Delta_{rs}) \wedge \\
+&allocsets\ (alloc\ b\_set\  \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace  \\
+&\ \ \ \ \ \ \ \wedge level (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs} 
 \end{align*}
 }
 \vspace{-12pt}
 
-The next two Lemma~\ref{pp5} and~\ref{pp6} guarantee nothing is changed because of the deallocation failure. This consequence results from the Leaf node which is to be released does not belong to any Block tree in \emph{blo\_set}, or the type of the Leaf node to be freed is \emph{FREE} already.
+From lemmas~\ref{lemma:free_min2} and~\ref{lemma:free_nomin} we show the final lemma on the functional correctness of \textbf{alloc} with regards to allocated memory blocks. 
+
+\begin{lemma} [Allocsets]
+	\label{lemma:free}
+\end{lemma}
+\vspace{-7pt}
+{\footnotesize
+	\begin{align*}
+	&exists\_freelevel\ b\_set\  \Delta_{rs} \longrightarrow  \\
+	&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\  \Delta_{rs}) \wedge \\
+	&allocsets\ (alloc\ b\_set\  \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace  \\
+	&\ \ \ \ \ \ \ \wedge level (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs} 
+	\end{align*}
+}
+\vspace{-12pt}
+
+
+For the allocation algorithm, we also show in lemma~\ref{lemma:free_alloc} that any free block in the initial set of memory pools $b\_set$, different than the block being allocated, remains free after allocation.
+
+\begin{lemma} [Freeset for Allocation]
+	\label{lemma:free_alloc}
+\end{lemma}
+\vspace{-7pt}
+{\footnotesize
+	\begin{align*}
+	&exists\_freelevel\ b\_set\  \Delta_{rs} \wedge freesets\_maxlevel\ b\_set\  \Delta_{rs} \neq  \Delta_{rs} \longrightarrow  \\
+	&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\  \Delta_{rs}) \wedge \\
+	& \forall l'. l'\neq l \wedge l' \in freesets\ b\_set \longrightarrow l' \in freesets (alloc\ b\_set\  \Delta_{rs}) 
+	\end{align*}
+}
+\vspace{-12pt}
+
+
+\subsubsection{Deallocation}\label{sec:functionalDealloc}
+For deallocation, we first show in lemmas~\ref{lemma:deallocate_fail1} and~\ref{lemma:deallocate_fail2} that the deallocation service indeed does not change the memory layout when the block to deallocate does not belong to any memory pool in the memory layout, or when it exists but it has not been allocated. 
+
 
 \begin{lemma} [Deallocation Failure 1]
-\label{pp5}
+\label{lemma:deallocate_fail1}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-\nexists btree \in blo\_set.\ b \in set\ btree \longrightarrow fst\ (free\ blo\_set\ b) = blo\_set
+\nexists btree \in b\_set.\ b \in set\ btree \longrightarrow (free\ b\_set\ b) = b\_set
 \end{align*}
 }
 \vspace{-12pt}
 	
 \begin{lemma} [Deallocation Failure 2]
-\label{pp6}
+\label{lemma:deallocate_fail2}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-&\exists btree \in blo\_set.\ b \in set\ btree \wedge fst\ b = FREE \\
-&\longrightarrow fst\ (free\ blo\_set\ b) = blo\_set
+&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b = FREE \\
+&\longrightarrow (free\ b\_set\ b) = b\_set
 \end{align*}
 }
 \vspace{-12pt}
 
-Lemma~\ref{pp7} ensures a correct transition during a deallocation success process. It describes that the Leaf node, which is to be released, dose not belong to allocated set any more.
+Then we show in Lemma~\ref{lemma:deallocation} that the deallocation process carries out a correct transition during a deallocation success process. It describes that the Leaf node, which is to be released, dose not belong to allocated set any more.
 
-\begin{lemma} [Allocsets for Deallocation Success]
-\label{pp7}
+\begin{lemma} [Allocsets for Deallocation]
+\label{lemma:deallocation}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-&\exists btree \in blo\_set.\ b \in set\ btree \wedge fst\ b \neq FREE \\ &\longrightarrow allocsets\ blo\_set = allocsets\ fst\ (free\ blo\_set\ b) \cup \lbrace b \rbrace
+&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE \longrightarrow \\ 
+& b\notin allocsets (free\ b\_set\ b) \wedge \\
+& b\_set = allocsets\ (free\ b\_set\ b) \cup \lbrace b \rbrace
 \end{align*}
 }
 \vspace{-12pt}
 
-After giving these lemmas for preconditions and postconditions, we prove that our buddy allocation specification satisfies these behavior expectations. The first theorem we prove is as follows.
+With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. However, we have to ensure that any free memory block after deallocating, different than the block resulting of the deallocation process, has to be also free in the initial set of free blocks $b\_set$. We show this in Lemma~\ref{lemma:freedealloc}.
 
-\begin{theorem}
-The buddy allocation specification meets all behavior expectations described by preconditions and postconditions above.
-\end{theorem}
-
-Next, we introduce invariants to guarantee functional correctness of the specification from memory layouts perspective. Firstly, we ensure that the allocation operation picks out a correct and suitable Leaf node. Two properties are proved: the correctness of the function \emph{output\_level}, mapping the size of requested memory block to the level of the quad-tree in Definition~\ref{mostsuitable}; the correctness of the hierarchical structure in a quad-tree. Here are two lemmas that ensure the correctness of Definition~\ref{mostsuitable}.
-
-\begin{lemma} [Correctness of Function output\_level 1]
+\begin{lemma} [Freeset for Deallocation]
+	\label{lemma:freedealloc}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
-\begin{align*}
-&\vert blo\_list \vert > 0 \wedge rsize \leq blo\_list\ !\ (\vert blo\_list \vert - 1) \\
-&\longrightarrow output\_level\ blo\_list\ rsize = \vert blo\_list \vert - 1
-\end{align*}
-}
-\vspace{-12pt}	
-
-\begin{lemma} [Correctness of Function output\_level 2]
-\end{lemma}
-\vspace{-7pt}
-{\footnotesize
-\begin{align*}
-&\vert blo\_list \vert > 1 \wedge l < \vert blo\_list \vert - 1 \\
-&\wedge rsize \leq blo\_list\ !\ l \wedge rsize > blo\_list\ !\ (l + 1) \\
-&\longrightarrow output\_level\ blo\_list\ rsize = l
-\end{align*}
+	\begin{align*}
+	&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE \longrightarrow \\ 
+	&(1) \exists b'\ lvl.\ b' \in free\_lvl\ (free\ b\_set\ b)\ lvl \wedge b' \notin free_lvl (b\_set) lvl\ \wedge \\
+	& (2) \forall b''. b''\neq b' \wedge b \in freesets (free\ b\_set\ b) \longrightarrow b'' \in b\_set
+	\end{align*}
 }
 \vspace{-12pt}
 
-With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. Then we introduce a single lemma to prove the correctness of the hierarchical structure of a quad-tree. It says that the level of root tree is zero, and the level of any child node is one more than its immediate father node. Function \textbf{root} checks whether the tree is a root tree, and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
+This property first says that there is a free block $b'$ in the new set of memory pools that does not belong to the original set of memory pools (1). This is the free block resulting of deallocating the block. Then, we state that any other free block different than $b'$ belonging to the new set it also belongs to the original set (2).
 
-\begin{lemma} [Hierarchical Structure of a Quad-tree]
-\end{lemma}
-\vspace{-7pt}
-{\footnotesize
-\begin{align*}
-&(root\ btree \longrightarrow get\_level\ btree = 0) \\
-&\wedge (get\_level\ btree = l \wedge l \geq 0 \wedge chtree \in child\ btree \\
-&\ \ \ \longrightarrow get\_level\ chtree = l + 1)
-\end{align*}
-}	
-\vspace{-12pt}
+%After giving these lemmas for preconditions and postconditions, we prove that our buddy allocation specification satisfies these behavior expectations. The first theorem we prove is as follows.
+%
+%\begin{theorem}
+%The buddy allocation specification meets all behavior expectations described by preconditions and postconditions above.
+%\end{theorem}
 
-Until now, we have already proved the correctness of the mapping function \emph{output\_level} and the hierarchical structure of a quad-tree. Then we can deduce the following theorem to guarantee the property of picking out a correct and suitable Leaf node.
+%Next, we introduce invariants to guarantee functional correctness of the specification from the memory layout perspective. Firstly, we ensure that the allocation operation picks out a correct and suitable Leaf node. Two properties are proved: the correctness of the function \emph{output\_level}, mapping the size of requested memory block to the level of the quad-tree in Definition~\ref{mostsuitable}; the correctness of the hierarchical structure in a quad-tree. Here are two lemmas that ensure the correctness of Definition~\ref{mostsuitable}.
+%
+%\begin{lemma} [Correctness of Function output\_level 1]
+%\end{lemma}
+%\vspace{-7pt}
+%{\footnotesize
+%\begin{align*}
+%&\vert blo\_list \vert > 0 \wedge rsize \leq blo\_list\ !\ (\vert blo\_list \vert - 1) \\
+%&\longrightarrow output\_level\ blo\_list\ rsize = \vert blo\_list \vert - 1
+%\end{align*}
+%}
+%\vspace{-12pt}	
+%
+%\begin{lemma} [Correctness of Function output\_level 2]
+%\end{lemma}
+%\vspace{-7pt}
+%{\footnotesize
+%\begin{align*}
+%&\vert blo\_list \vert > 1 \wedge l < \vert blo\_list \vert - 1 \\
+%&\wedge rsize \leq blo\_list\ !\ l \wedge rsize > blo\_list\ !\ (l + 1) \\
+%&\longrightarrow output\_level\ blo\_list\ rsize = l
+%\end{align*}
+%}
+%\vspace{-12pt}
+%
+%With these two lemmas, we make sure the correctness of the mapping function \emph{output\_level}. 
+\subsubsection{Correct Merging}
+%We introduce a lemma to prove the correctness of the hierarchical structure of a quad-tree. It says that the level of root tree is zero, and the level of any child node is one more than its immediate father node. Function \textbf{root} checks whether the tree is a root tree, and function \textbf{child} gives us a set of all immediate child nodes of a Node tree.
+%
+%\begin{lemma} [Hierarchical Structure of a Quad-tree]
+%\end{lemma}
+%\vspace{-7pt}
+%{\footnotesize
+%\begin{align*}
+%&(root\ btree \longrightarrow get\_level\ btree = 0) \\
+%&\wedge (get\_level\ btree = l \wedge l \geq 0 \wedge chtree \in child\ btree \\
+%&\ \ \ \longrightarrow get\_level\ chtree = l + 1)
+%\end{align*}
+%}	
+%\vspace{-12pt}
+%
+%Until now, we have already proved the correctness of the mapping function \emph{output\_level} and the hierarchical structure of a quad-tree. Then we can deduce the following theorem to guarantee the property of picking out a correct and suitable Leaf node.
+%
+%\begin{theorem}
+%The buddy allocation specification picks out a correct Leaf node and allocate it on the right level in the quad-tree.
+%\end{theorem}
 
-\begin{theorem}
-The buddy allocation specification picks out a correct Leaf node and allocate it on the right level in the quad-tree.
-\end{theorem}
+The buddy memory allocation algorithm may reduce the fragmentation by invoking merge function during the process of deallocation to merge buddy blocks that are free, as shown in Fig.~\ref{fig:merginfreeblocks}. Previous lemmas do not show that the merging procedure is correct, so we show here that the merging process is correctly carried out. This can be reduced to show that the memory layout preserves an invariant saying that buddy memory blocks are not all of them free. To achieve this, we first define the notion of all free buddy memory block using the definition below, where
+function \textbf{child} gives us a set of all immediate child nodes of a \emph{Tree} and \textbf{leaf} is a predicate checking whether a node is terminal or not:
+% In order to solve this, we still consider the correctness of the structure in a quad-tree during allocation and deallocation processes. We consider a fact that there is not such a Node tree, whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. Function \textbf{leaf} is to check whether the tree is a Leaf node.
 
-The buddy memory allocation algorithm may reduce the fragmentation by invoking merge function during the process of deallocation. Whether this function executes correctly can not be proved straightway. In order to solve this, we still consider the correctness of the structure in a quad-tree during allocation and deallocation processes. We consider a fact that there is not such a Node tree, whose four immediate child nodes are all Leaf nodes and their types are \emph{FREE}. A definition is constructed as follows to check whether a quad-tree is such a Node tree. Function \textbf{leaf} is to check whether the tree is a Leaf node.
-
-\begin{definition} [Four Free Leaves Belong to the Same Node]
+\begin{definition} [Four Free Leaves Belong to the Same Node] \label{def:FF4}
+	\vspace{-7pt}
+	{\footnotesize
+		\begin{align*}
+		is\_FFL\ btree \triangleq\ &\forall chtree \in child\ btree.\ leaf\ chtree \\
+		&\wedge fst\ chtree = FREE
+		\end{align*}
+	}
 \end{definition}
-\vspace{-7pt}
-{\footnotesize
-\begin{align*}
-is\_FFL\ btree \triangleq\ &\forall chtree \in child\ btree.\ leaf\ chtree \\
-&\wedge fst\ chtree = FREE
-\end{align*}
-}
-\vspace{-12pt}
 
-Fig. \ref{fig2} can explain this definition well. As the first picture shows, the subtree in the lower left corner is such a Node tree, because its four child nodes are all Leaf nodes and their types are \emph{FREE}. Therefore, merge function is necessary to handle this situation. The followings are lemmas that ensure the non-existence of such \emph{FFL} trees after allocation and deallocation operations, if they guarantee non-existence of such \emph{FFL} trees in the assuming of implication expressions.
+Operating system initialize the whole memory into a series of free blocks in different sizes, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initialization state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{lemma:allocffl} and~\ref{lemma:deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter operating system performs allocation or deallocation operations. Therefore, we can make sure the whole memory system preserves this property. We have this theorem as follows. Furthermore, it proves that the buddy allocation specification reduces the fragmentation by merge operation.
+We then show in Lemmas~\ref{lemma:allocffl} and~\ref{lemma:deallocffl} that after the allocation and deallocation procedures there are no buddy groups where all the members are free. 
 
 \begin{lemma} [Non-existence of FFL during Allocation]
-\label{allocffl}
+\label{lemma:allocffl}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-\forall b \in blo\_set.\ &\neg\ is\_FFL\ b \\
-&\longrightarrow \forall b \in fst\ (alloc\ blo\_set\ rlv).\ \neg\ is\_FFL\ b
+\forall b \in b\_set.\ &\neg\ is\_FFL\ b \\
+&\longrightarrow \forall b \in fst\ (alloc\ b\_set\ rlv).\ \neg\ is\_FFL\ b
 \end{align*}
 }
 \vspace{-12pt}
 
 \begin{lemma} [Non-existence of FFL during Deallocation]
-\label{deallocffl}
+\label{lemma:deallocffl}
 \end{lemma}
 \vspace{-7pt}
 {\footnotesize
 \begin{align*}
-\forall b \in blo\_set.\ &\neg\ is\_FFL\ b \\
-&\longrightarrow \forall b \in fst\ (free\ blo\_set\ b).\ \neg\ is\_FFL\ b
+\forall b \in b\_set.\ &\neg\ is\_FFL\ b \\
+&\longrightarrow \forall b \in fst\ (free\ b\_set\ b).\ \neg\ is\_FFL\ b
 \end{align*}
 }
 \vspace{-12pt}
 
-We consider such a situation: operating system initialize the whole memory into a series of free blocks in different sizes, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initialization state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{allocffl} and~\ref{deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter operating system performs allocation or deallocation operations. Therefore, we can make sure the whole memory system preserves this property. We have this theorem as follows. Furthermore, it proves that the buddy allocation specification reduces the fragmentation by merge operation.
+%We consider such a situation: operating system initialize the whole memory into a series of free blocks in different sizes, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initialization state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{allocffl} and~\ref{deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter operating system performs allocation or deallocation operations. Therefore, we can make sure the whole memory system preserves this property. We have this theorem as follows. Furthermore, it proves that the buddy allocation specification reduces the fragmentation by merge operation.
+%
+%\begin{theorem}
+%The buddy allocation specification guarantees non-existence of FFL trees among all memory blocks.
+%\end{theorem}
 
-\begin{theorem}
-The buddy allocation specification guarantees non-existence of FFL trees among all memory blocks.
-\end{theorem}
+%\subsection{Security Properties}
+%Regarding to security, we prove two important properties: memory isolation and non-leakage. The first one ensures non-overlapping of the address space allocated. The second one protect the integrity of the address space, ensuring that the memory domain is constant, i.e., the union of the sets of allocated memory blocks and free memory blocks is always the same.
+%Another property non-leakage guarantees that available memory blocks (including occupied and free ones) are not getting less and less. In other words, it protects the integrity of address spaces.
 
-In the end, we prove two significant properties: memory isolation and non-leakage. The first one is to ensure non-existence of the overlap in address spaces. The isolation makes sure that memory blocks of a domain can not be maliciously overwritten by others. Another property non-leakage guarantees that available memory blocks (including occupied and free ones) are not getting less and less. In other words, it protects the integrity of address spaces.
+\subsubsection{Memory Isolation}
+Memory isolation ensures non-overlapping of the allocated address space. In Section~\ref{statedes} we show that the memory model uses a natural number as a block identifier \emph{ID}. The \emph{ID} helps us to uniquely identify each physical memory block in a memory pool. 
 
-Now we begin with the memory isolation. We provisionally use type \emph{ID} in basic type \emph{nat} to represent a contiguous address occupied by a memory block in Section~\ref{statedes}. To link \emph{ID} to a real address, two things have to be introduced and proved: 1. a mapping function between a \emph{ID} and a real address as well as its correctness; 2. the one-to-one uniqueness between a \emph{ID} and a real address. We leave this part to the further work for a more detailed specification proof, in other words the design level of the buddy allocation. In this paper, we are not going to introduce real addresses into this specification, and we consider the correctness of the mapping function and promise its the uniqueness. Therefore, with these assumptions, isolation of address spaces means that all \emph{IDs} which Leaf nodes brings with are unique.
+%We use that  \emph{ID} to represent the contiguous address occupied by a memory block. To link \emph{ID} to a real address, two things have to be introduced and proved: 1. a mapping function between a \emph{ID} and a real address as well as its correctness; 2. the one-to-one uniqueness between a \emph{ID} and a real address. We leave this part to the further work for a more detailed specification proof, in other words the design level of the buddy allocation. In this paper, we are not going to introduce real addresses into this specification, and we consider the correctness of the mapping function and promise its the uniqueness. Therefore, with these assumptions, isolation of address spaces means that all \emph{IDs} which Leaf nodes brings with are unique.
 
-The following definition introduces a judgment whether two Leaf nodes have the same \emph{ID}. Function \textbf{get\_id} gives the \emph{ID} a Leaf node brings with.
+Definition~\ref{def:dif} introduces a judgment stating whether two Leaf nodes have the same \emph{ID}. This definition checks that for any memory pool $b$ in a memory layout $b\_set$, and any memory block $l$ in $b$, i.e. a terminal node of $b$, then there is not any other $l'$, different than $l$, and other memory pool $b'$ in $b\_set$ where the \emph{ID} of $l$ is equal the \emph{ID} of $l'$.
 
-\begin{definition} [Different IDs]
-\vspace{-7pt}
+\begin{definition} [Different IDs]\label{def:dif}
+{\footnotesize
+	\begin{align*}
+	&is\_different\ b\_set \triangleq \\
+	&\forall b \in b\_set.\ \forall l \in set\ b.\ \nexists l'\ b'.\ l' \in set\ b' \wedge b' \in b\_set\ \wedge l' \ne l \wedge  \\
+	&\ \ \ \ \ get\_id\ l' = get\_id\ l
+	\end{align*}
+}
 \end{definition}
+
+Lemmas~\ref{lemma:id_alloc} and~\ref{lemma:id_dealloc} shows that uniqueness of IDs is an invariant to the allocation and deallocation procedures.
+%
+%Lemmas~\ref{} that ensure this property holds during the procedures of allocation and deallocation if it holds in the assuming of implication expressions.
+
+\begin{lemma} [Different IDs during Allocation] \label{lemma:id_alloc}
 {\footnotesize
-\begin{align*}
-&is\_different\ blo\_set \triangleq \\
-&\forall b \in blo\_set.\ \forall l \in set\ b.\ (\nexists l'.\ l' \in set\ (SOME\ b.\ b \in blo\_set) \\
-&\ \ \ \ \wedge l' \ne l \wedge get\_id\ l' = get\_id\ l)
-\end{align*}
+	\begin{align*}
+	is\_different\ b\_set \longrightarrow is\_different\ fst\ (alloc\ b\_set\ rlv)
+	\end{align*}
 }
-\vspace{-12pt}
-
-Below are two lemmas that ensure this property holds during the procedures of allocation and deallocation if it holds in the assuming of implication expressions.
-
-\begin{lemma} [Different IDs during Allocation]
-\vspace{-7pt}
 \end{lemma}
-{\footnotesize
-\begin{align*}
-is\_different\ blo\_set \longrightarrow is\_different\ fst\ (alloc\ blo\_set\ rlv)
-\end{align*}
-}
-\vspace{-12pt}
 
-\begin{lemma} [Different IDs during Deallocation]
-\vspace{-7pt}
+
+\begin{lemma} [Different IDs during Deallocation] \label{lemma:id_dealloc}
+{\footnotesize
+	\begin{align*}
+	is\_different\ b\_set \longrightarrow is\_different\ fst\ (free\ b\_set\ b)
+	\end{align*}
+}
 \end{lemma}
-{\footnotesize
-\begin{align*}
-is\_different\ blo\_set \longrightarrow is\_different\ fst\ (free\ blo\_set\ b)
-\end{align*}
-}
-\vspace{-12pt}
 
-Let us go back to the initialization state. The whole memory is divided into a finite number of free root nodes. We can easily guarantee that all \emph{IDs} these root nodes bring with are unique, and we initialize the collection \emph{idset} with these used \emph{IDs}. Then according to the lemmas above, any state after initialization satisfies \emph{Different IDs} no matter operation system performs allocation or deallocation operations. As a result, we can guarantee the whole memory system preserve \emph{Different IDs}. We have this theorem as follows.
 
-\begin{theorem}
-The buddy allocation specification ensures all IDs of Leaf nodes are unique.
-\end{theorem}
+%Let us go back to the initialization state. The whole memory is divided into a finite number of free root nodes. We can easily guarantee that all \emph{IDs} these root nodes bring with are unique, and we initialize the collection \emph{idset} with these used \emph{IDs}. Then according to the lemmas above, any state after initialization satisfies \emph{Different IDs} no matter operation system performs allocation or deallocation operations. As a result, we can guarantee the whole memory system preserve \emph{Different IDs}. We have this theorem as follows.
+%
+%\begin{theorem}
+%The buddy allocation specification ensures all IDs of Leaf nodes are unique.
+%\end{theorem}
 
-Finally, with the assumptions that the correctness of the mapping function between a \emph{ID} and a real address, and promising its uniqueness, we prove the specification preserves the isolation of memory address spaces.
+%Finally, with the assumptions that the correctness of the mapping function between a \emph{ID} and a real address, and promising its uniqueness, we prove the specification preserves the isolation of memory address spaces.
 
-Next is for the non-leakage of memory blocks. We use a quad-tree structure and map all the blocks into the Leaf nodes of these trees, thence the non-leakage means that all the Leaf nodes (including occupied and free ones) are recorded in use. If we can infer a correct and certain relation between the number of Leaf nodes and Non-leaf nodes of a quad-tree, we can prove that all the Leaf nodes are in use and none of them is forgotten. To achieve this, the first step is to search and prove a certain relation between the numbers of Leaf nodes and Non-leaf nodes in a quad-tree. Through exploration, we have found and proved such a relation as follows. Functions \textbf{get\_leaf} and \textbf{get\_node} take a Block and return Leaf nodes set and Non-leaf nodes set respectively.
+Considering that a block ID allows us to uniquely identify a memory block, the lemma on uniqueness of blocks and Lemma~\ref{lemma:free} allows to infer non-overlapping of allocation of memory blocks. That is, that two different allocations do not assign the same memory block.
 
-\begin{lemma} [Relation of a Quad-tree Nodes]
-\vspace{-7pt}
-\end{lemma}
-{\footnotesize
-\begin{align*}
-Qtree\ b:\ size\ (get\_leaf\ b) = size\ (get\_node\ b) \times 3 + 1
-\end{align*}
-}
-\vspace{-12pt}
+Note that although our level of abstraction does not consider memory addresses, it would be easy to refine this model to include memory addresses and identify the domain of addresses of a memory block as a function in terms of the location of the memory block in the tree. 
 
-After establishing this relation, we use the following two lemmas to guarantee all the quad-trees during execution procedures maintain this relation.
-
-\begin{lemma} [Qtree during Allocation]
-\vspace{-7pt}
-\end{lemma}
-{\footnotesize
-\begin{align*}
-\forall b \in blo\_set.\ Qtree\ b \longrightarrow \forall b \in fst\ (alloc\ blo\_set\ rlv).\ Qtree\ b
-\end{align*}
-}
-\vspace{-12pt}
-
-\begin{lemma} [Qtree during Deallocation]
-\vspace{-7pt}
-\end{lemma}
-{\footnotesize
-\begin{align*}
-\forall b \in blo\_set.\ Qtree\ b \longrightarrow \forall b \in fst\ (free\ blo\_set\ b).\ Qtree\ b
-\end{align*}
-}
-\vspace{-12pt}
-
-In the end, we can prove that all quad-trees hold this relation between the number of Leaf nodes and Non-leaf nodes. The correct structure of a quad-tree means that all Leaf nodes (including occupied and free ones) are in use. We have this theorem as follows. Then considering the fact that all blocks are mapped into the Leaf nodes of these trees, we can ensure that the specification preserves memory non-leakage.
-
-\begin{theorem}
-The buddy allocation specification guarantees any Block is a Qtree.
-\end{theorem}
-
-To sum up, in this subsection we introduce preconditions and postconditions as well as significant invariants to ensure the formal buddy allocation specification preserves a set of properties which guarantee its functional correctness. In next two subsections, we build a security model and prove the specification preserves integrity of the memory structures.
+%\subsubsection{Non-leakage of Memory Blocks}
+%We use a quad-tree structure and map all the blocks into the Leaf nodes of these trees, thence the non-leakage means that all the Leaf nodes (including occupied and free ones) are recorded in use. If we can infer a correct and certain relation between the number of Leaf nodes and Non-leaf nodes of a quad-tree, we can prove that all the Leaf nodes are in use and none of them is forgotten. To achieve this, the first step is to search and prove a certain relation between the numbers of Leaf nodes and Non-leaf nodes in a quad-tree. Through exploration, we have found and proved such a relation as follows. Functions \textbf{get\_leaf} and \textbf{get\_node} take a Block and return Leaf nodes set and Non-leaf nodes set respectively.
+%
+%\begin{lemma} [Relation of a Quad-tree Nodes]
+%\vspace{-7pt}
+%\end{lemma}
+%{\footnotesize
+%\begin{align*}
+%Qtree\ b:\ size\ (get\_leaf\ b) = size\ (get\_node\ b) \times 3 + 1
+%\end{align*}
+%}
+%\vspace{-12pt}
+%
+%After establishing this relation, we use the following two lemmas to guarantee all the quad-trees during execution procedures maintain this relation.
+%
+%\begin{lemma} [Qtree during Allocation]
+%\vspace{-7pt}
+%\end{lemma}
+%{\footnotesize
+%\begin{align*}
+%\forall b \in b\_set.\ Qtree\ b \longrightarrow \forall b \in fst\ (alloc\ b\_set\ rlv).\ Qtree\ b
+%\end{align*}
+%}
+%\vspace{-12pt}
+%
+%\begin{lemma} [Qtree during Deallocation]
+%\vspace{-7pt}
+%\end{lemma}
+%{\footnotesize
+%\begin{align*}
+%\forall b \in b\_set.\ Qtree\ b \longrightarrow \forall b \in fst\ (free\ b\_set\ b).\ Qtree\ b
+%\end{align*}
+%}
+%\vspace{-12pt}
+%
+%In the end, we can prove that all quad-trees hold this relation between the number of Leaf nodes and Non-leaf nodes. The correct structure of a quad-tree means that all Leaf nodes (including occupied and free ones) are in use. We have this theorem as follows. Then considering the fact that all blocks are mapped into the Leaf nodes of these trees, we can ensure that the specification preserves memory non-leakage.
+%
+%\begin{theorem}
+%The buddy allocation specification guarantees any Block is a Qtree.
+%\end{theorem}
+%
+%To sum up, in this subsection we introduce preconditions and postconditions as well as significant invariants to ensure the formal buddy allocation specification preserves a set of properties which guarantee its functional correctness. In next two subsections, we build a security model and prove the specification preserves integrity of the memory structures.
 
 \subsection{A Security Model}\label{sec:securitymodel}
-Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we try to prove the integrity property for buddy allocation specification. For this purpose, we firstly design a security model which consists of a nondeterministic state machine and the integrity property conditions. This part of work is following the work from~\cite{reg_securitymodel}.
+Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we prove integrity of  the data allocated by a buddy allocation specification. For this purpose, we follow the work from~\cite{reg_securitymodel} to firstly design a security model, which consists of a nondeterministic state machine, and then to specify the integrity property and prove that it is an invariant on the memory allocator.
 
-\subsubsection{Memory State Machine} is designed to be event based. Thus, $\mathcal{S}$ represents the state space and $\mathcal{E}$ is the set of event labels. The state-transition function is characterized by $\varphi$, which has the form of $\varphi: \mathcal{E} \rightarrow \mathbb{P}(\mathcal{S} \times \mathcal{S})$. The state machine must execute from a initial state, therefore, $s_0 \in \mathcal{S}$ which is on behalf of the initial state must be included in this machine. The definition of this state machine is as follows.
-
-\begin{definition} [State Machine]
-\vspace{-7pt}
-\end{definition}	
-{\footnotesize
-\begin{align*}
-\mathcal{M} = \langle \mathcal{S}, \mathcal{E}, \varphi, s_0 \rangle
-\end{align*}
-}
-\vspace{-12pt}
+\subsubsection{Memory State Machine} 
+We define a memory state machine as tuple $\mathcal{M} = \langle \mathcal{S}, \mathcal{E}, \varphi, s_0 \rangle$. $\mathcal{S}$ represents the state space,  $s_0 \in \mathcal{S}$ is the initial machine state, and $\mathcal{E}$ is the set of event labels. The state-transition function is characterized by $\varphi$, of type $\varphi: \mathcal{E} \rightarrow \mathbb{P}(\mathcal{S} \times \mathcal{S})$, where $\mathbb{P}(n)$ is the powerset of the set $n$.
 
 Based on the state machine above, we introduce some auxiliary functions: function \textbf{execution(s, es)} takes a state \emph{s} and a sequence of events \emph{es}, then returns the set of final states; function \textbf{reachable(s)} (denoted as $\mathcal{R}(s)$) checks the reachability of a state \emph{s} from the initialized state $s_0$ by the \emph{execution} function: \emph{$\exists$es.\ s $\in$ execution($s_0$, es)}.
 
-Next, we add the concept of partitions to represent the entities that execute the state-transition function. Partitions are the basic domains. In addition, we introduce partition scheduling as a domain \textbf{scheduler}. And we give the strict restriction that \emph{scheduler} cannot be interfered by any other domains. Its aim is to ensure that \emph{scheduler} does not leak information by its scheduling decisions. Therefore, the domains ($\mathcal{D}$) in $\mathcal{M}$ are the configured partitions ($\mathcal{P}$) and the scheduler ($\mathbb{S}$), $\mathcal{D}$ = $\mathcal{P}$ $\cup$ $\lbrace$$\mathbb{S}$$\rbrace$. Function \textbf{dom(s, e)} gives which partition is currently executing \emph{e} in the state \emph{s} by consulting the \emph{scheduler}.
+Next, we add the concept of domains, also referred as partitions, to represent the entities that execute the state-transition function. In addition, we introduce partition scheduling as a domain \textbf{scheduler}. Therefore, the domains ($\mathcal{D}$) in $\mathcal{M}$ are the configured partitions ($\mathcal{P}$) and the scheduler ($\mathbb{S}$), $\mathcal{D}$ = $\mathcal{P}$ $\cup$ $\lbrace$$\mathbb{S}$$\rbrace$.
 
-\subsubsection{Integrity Definition} is referenced to~\cite{reg_noninterference} which provides a formalism for the specification of security policies. The main idea in this article is that domain \emph{u} is non-interfering with domain \emph{v} if no action performed by \emph{u} can influence the subsequence outputs seen by \emph{v}. According to this article, we use the concepts of state equivalence and interfering to construct integrity property for our security model.
+\subsubsection{Integrity Definition} We use the notion of integrity from~\cite{reg_noninterference}, which provides a formalism for the specification of security policies. A domain \emph{u} is non-interfering with domain \emph{v} if no action performed by \emph{u} can influence the subsequence outputs seen by \emph{v}. We define the notion of integrity in our security model using the concepts of state equivalence and interfering.
 
-Firstly, state equivalence (denoted as $\sim$) means that states are identical for a domain seen by it. For example, some certain collections that accessed only by a domain are indistinguishable at two different states. We use $\equidom{s}{d}{t}$ to represent \emph{s} and \emph{t} are identical for domain \emph{d}.
+Firstly, state equivalence is denoted as $\sigma_1 \sim \sigma_2$ is a relation in $(\mathbb{S}\times\mathbb{S})$. State equivalence of $\sigma_1$ and $\sigma_2$ on a domain $d$ is denoted as $\equidom{s}{d}{t}$.
 
-By the concept of state equivalence, interfering (denoted ad $\interf$) means that the state equivalence of some domain is broken due to the operations by another domain. And $\ninterf$ is the opposite relation of $\interf$. Since the \emph{scheduler} can schedule other domains, it can interfere with them. However, the \emph{scheduler} cannot be interfered by any other domains to ensure that the \emph{scheduler} does not leak information by its scheduling decisions.
+Interference is a relation in $(\mathcal{D}\times\mathcal{D})$ and is denoted as $a \interf b$, representing that domain $a$ interfere with domain $b$. We use $a \ninterf b$ to express that a domain $a$ does not interfere domain $b$.
 
-With these two concepts, we can easily define the integrity property conditions as follows.
 
-\begin{definition} [Integrity Property Conditions]
+
+% In our security model, we forbid partitions to interfere with the \emph{scheduler}. Its aim is to ensure that \emph{scheduler} does not leak information by its scheduling decisions. Since the \emph{scheduler} can schedule other domains, it can interfere with them. However, the \emph{scheduler} cannot be interfered by any other domains to ensure that the \emph{scheduler} does not leak information by its scheduling decisions.
+
+%With these two concepts, we can easily define the integrity property conditions as follows.
+Integrity of an event $e$ is defined as:
+\begin{definition} [Integrity] \label{def:integrity}
 \vspace{-7pt}
 \end{definition}	
 {\footnotesize
@@ -320,13 +379,13 @@ integrity(e) \triangleq\ &\forall d\ s\ s'.\ \mathcal{R}(s) \wedge dom(s, e) \ni
 }
 \vspace{-12pt}
 
-From the conditions, if the current domain which is executing \emph{e} in state \emph{s} promises not to interfere any other domains, then the state \emph{s} and the final state \emph{s'} are identified as state equivalence seen by any other domains. That is to say the current domain has only access to its own space. Therefore, the integrity property conditions guarantee that the information is trustworthy and accurate.
+$dom(\sigma, e)$ is a function from pairs $(\mathcal{S}\times \mathcal{E})$ to $\mathcal{D}$, specifying the domain executing an event $e$ on a state $\sigma$. The notion of integrity states that for any domain $d$, and a reachable state $s$ from the initial state $s0$, if the domain executing the event $e$ in $s$ does not interfere with $d$, then for any state $s'$ that $e$ can transit to from $s$, $s$ is equivalent to $s'$ for the domain $d$. That is, if the domain executing $e$ is not able to interfere with $d$, then the execution of $e$ does not modify the information that domain $d$ observes.
 
-\subsubsection{Security Model} is defined as follows based on the discussion above.
+\subsubsection{Security Model} We define the security model as:
 
 \begin{definition} [Security Model] \\
-{\footnotesize
-\[\mathcal{S\_M} = \langle \mathcal{M}, \mathcal{D}, dom, \interf, \sim \rangle\] with assumptions as follows.
+{
+The security model is a tuple \[\mathcal{S\_M} = \langle \mathcal{M}, \mathcal{D}, dom, \interf, \sim \rangle\] assuming the following assumptions.
 \begin{enumerate}
 \item $\forall$d $\in$ $\mathcal{D}$. $\mathbb{S}$ $\interf$ d
 \item $\forall$d $\in$ $\mathcal{D}$. d $\interf$ $\mathbb{S}$ $\longrightarrow$ d = $\mathbb{S}$
@@ -336,134 +395,114 @@ From the conditions, if the current domain which is executing \emph{e} in state 
 \end{enumerate}
 }
 \end{definition}
-\vspace{-7pt}
 
-This security model constructs a sequential model for event-based specification to verify the integrity property. Next, we will instantiate this security model with our buddy allocation specification. We are going to find that if our buddy allocation specification satisfies the integrity property conditions.
+
+The security model is tuple composed of a state machine $\mathcal{M}$, a set of execution domains $\mathcal{D}$, a function $dom$, and the relations for interference between domains and equivalence between states. The assumptions of the model represent that: the scheduler interfere with any execution domain (1); an execution domain $d$ cannot interfere with the scheduler, unless $d$ is the scheduler itself (2); two states $s$ and $t$ are equivalent on the scheduler only if the execution domain of $s$ and $t$ is the same on the execution of any event $e$ (3); any event $e$ be defined on any reachable state (4); all the events must preserve the integrity relation (5).
+
+This security model constructs a sequential model for event-based specifications which ensures the preservation of the integrity  property for any possible execution trace on $\mathcal{M}$. In the next section, we instantiate the security model with our buddy allocation specification.
 
 \subsection{Instantiation and Security Proofs}\label{sec:securityproof}
-In this part, we add interfaces to the buddy allocation specification, and package it into an event specification. We think of this event specification as an instantiated security model. Then our work is to prove the instantiated model satisfy the integrity property.
+In this part, we construct an event specification by adding interfaces to the buddy allocation specification introduced in Section~\ref{sec:spec}. We instantiate the security model specifying the function for execution domains, and the relations of domain interference and state equivalence. We also prove that the wrapped buddy allocation events satisfy the integrity property.
 
 \subsubsection{Instantiation}
-A global state records all the information like domains and memory resources. A \emph{state} in type \emph{record} mainly consists of the currently running domain (\textbf{Cur}), a collection of entire domains (\textbf{Parset}), a collection of whole memory Blocks (\textbf{Bloset}) and the memory address spaces occupied by the partition (characterized by function \textbf{Par\_Mem: partition $\rightharpoonup$ Mem\_Add}, \emph{Mem\_Add} is in the type of \emph{idset}).
 
-To construct interface functions \textbf{alloc\_memory} and \textbf{free\_memory}, it only needs to update \emph{Par\_Mem} information in \emph{state} according to successful or failing results returned by functions \emph{alloc} and \emph{free}. Another interface function is scheduler, it arbitrarily selects partitions to mark the \emph{Cur} in \emph{state}. These three interface functions are defined as follows. In addition, function \textbf{allocid} returns the \emph{ID} of allocated Leaf node in allocation operation.
+We first define the notion of state used in the memory state machine $\mathcal{M}$ as $\Sigma = \langle \mathcal{MP}, \xi, \mathcal{A} \rangle$, where $\mathcal{MP}$ is a set of memory pools, i.e., the memory state; $\xi$ is the scheduled domain used to instantiate the function $dom$ in the security model; and $\mathcal{A}$ is a function from execution domains to memory blocks identifiers, which holds the memory blocks that have been allocated to each execution domain. We use  $\mathcal{A}$  to instantiate the equivalence function among domains.
+
+
+The events $\mathcal{E}$ in the security model is a set composed of an allocation, deallocation, and scheduler event. The interfaces for the allocation and deallocation use the \emph{alloc} and \emph{free} functions defined in Section~\ref{sec:spec} to update the internal information of the memory and the blocks identifier used by the domain executing the event. The Scheduler is an event function that sets $\xi$ non-deterministically with any execution domain. Note that we constrain the execution of allocation and free functions to be carried out by an execution domain that is not the scheduler, and the execution of the scheduler by the scheduler domain. The transition relation is defined as:
 
 \begin{definition} [Allocate Memory Interface]
-\vspace{-7pt}
-\end{definition}
-{\footnotesize
+{
 \begin{align*}
-alloc\_&memory\ s\ rlv \triangleq \\
-&if\ snd\ (alloc\ (Bloset\ s)\ rlv) = True\ then \\
-&\ \ \ \ s{\isasymlparr} Par\_Mem := (Par\_Mem\ s\ (Cur\ s)) \\
-&\ \ \ \ \ \ \ \cup \lbrace allocid\ (alloc\ (Bloset\ s)\ rlv) \rbrace {\isasymrparr} \\
-&else\ s
+\forall rlv&. \varphi\ allocate\_memory\ \Sigma \triangleq \\ 
+&if\ snd\ (alloc\ (\mathcal{MS}\ \Sigma)\ rlv) = True\ \wedge \xi\ \Sigma \neq \mathbb{S}\ then \\
+&\ \ \ \  \langle (alloc\ (\mathcal{MS}\ \Sigma)\ rlv), \xi, \mathcal{A}[\xi := \mathcal{A}\ \xi \\
+&\ \ \ \ \ \ \ \cup \lbrace allocid\ (alloc\ (\mathcal{MS}\ \Sigma)\ rlv) \rbrace] \rangle \\
+&else\ \Sigma
 \end{align*}
 }
-\vspace{-12pt}
+\end{definition}
 
 \begin{definition} [Deallocate Memory Interface]
-\vspace{-7pt}
-\end{definition}
-{\footnotesize
+
+{
 \begin{align*}
-free\_&memory\ s\ b \triangleq \\
-&if\ snd\ (free\ (Bloset\ s)\ b) = True\ then \\
-&\ \ \ \ s{\isasymlparr} Par\_Mem := (Par\_Mem\ s\ (Cur\ s)) - \lbrace snd\ b \rbrace {\isasymrparr} \\
-&else\ s
+\forall rs&. \varphi\ free\_memory\ \Sigma \triangleq \\ 
+&if\ snd\ (free\ (\mathcal{MS}\ \Sigma)\ rlv) = True\  \wedge \xi\ \Sigma \neq \mathbb{S}\ then \\
+&\ \ \ \  \langle (free\ (\mathcal{MS}\ \Sigma)\ rlv), \xi\ \Sigma, \mathcal{A}[\xi := \mathcal{A}\ \xi \\
+&\ \ \ \ \ \ \ - \lbrace allocid\ (free\ (\mathcal{MS}\ \Sigma) \rbrace] \rangle \\
+&else\ \Sigma
 \end{align*}
 }
-\vspace{-12pt}
+\end{definition}
 
 \begin{definition} [Scheduler]
-\vspace{-7pt}
-\end{definition}
-{\footnotesize
+{
 \begin{align*}
-scheduler\ s \triangleq s{\isasymlparr} Cur := SOME\ p.\ p \in (Parset\ s) {\isasymrparr}
+\varphi\ scheduler\ &\Sigma \triangleq \\
+\xi\ &\Sigma = \mathbb{S}\ then \\
+\langle &\mathcal{MS}\ \Sigma, SOME\ p.\ p \in \mathcal{D}, \mathcal{A}\ \Sigma \rangle \\
+else\ &\Sigma
 \end{align*}
 }
-\vspace{-12pt}
-
-With these interface functions, then we give the state-transition function \textbf{exec\_event(E)} as a instantiation of $\varphi$. Event function \emph{E} includes the interface functions \emph{alloc\_memory}, \emph{free\_memory} and \emph{scheduler}.
-
-\begin{definition} [State-transition]
-\vspace{-7pt}
 \end{definition}
-{\footnotesize
-\begin{align*}
-exec\_event\ E &\triangleq\ \lbrace (s, s').\ s' = \lbrace (E\ s) \rbrace \\
-&\wedge E \in \lbrace alloc\_memory,\ free\_memory,\ scheduler \rbrace \rbrace
-\end{align*}
-}
-\vspace{-12pt}
+Where $\mathcal{MS}\ \Sigma$, $\xi \Sigma$, and $\mathcal{A}\ \Sigma$ are respectively the projections of $\mathcal{MS}, \xi, \mathcal{A}$ in $\Sigma$. The notation $f[i:=v]$ sets the image of $i$ to $v$ in $f$, and for any $j\neq i$, $f\ j = f[i:=v]\ j$.
+Function $allocid$ returns the \emph{ID} of the block allocated or freed by allocation and deallocation events.
 
-Finally, we give the instantiation of integrity property by introducing concrete meanings to $\interf$ and $\sim$. In this paper, our goal is to preserve the integrity of memory address spaces. To be more specific, the memory areas of one domain can not be accessed by another domain except for \emph{scheduler} domain. Therefore, we have such considerations: the interfering entities are domains themselves and \emph{scheduler} domain; the state equivalence should be like that the \emph{Mem\_Add} of one domain preserving identical during execution of another domain. We give the instantiations of $\interf$ and $\sim$ as follows. Functions \textbf{is\_scheduler} and \textbf{is\_partition} take a domain and check whether it is a \emph{scheduler} domain or a \emph{partition} domain.
+
+Seeking integrity of the memory between domains, two different execution domains cannot interfere each with the other. On the other hand, since the scheduler $\mathbb{S}$ changes the current execution domain, it is necessary to set that it can interfere with any domain. We instantiate the interference relation as:
 
 \begin{definition} [Instantiation of $\interf$ by Domains]
-\vspace{-7pt}
-\end{definition}
-{\footnotesize
-\begin{align*}
-d1 \interf d2 \triangleq (d1 = d2) \vee is\_scheduler\ d1
-\end{align*}
+{
+	\begin{align*}
+	d1 \interf d2 \triangleq (d1 = d2) \vee d1 = \mathbb{S}
+	\end{align*}
 }
-\vspace{-12pt}
+\end{definition}
+
+The state equivalence for an execution domain different than the scheduler, hence a partition, must consider the set of block identifiers that have been allocated to it, given by $\mathcal{A}\ \Sigma\ d$ for the domain $d$ in the state $\Sigma$. We then say that two states are equivalents in a partition $d$ if the set of a allocated blocks for $d$ is the same in both states. The scheduler must check that the projection of $\xi$ is equal in the relation, that is the scheduler did not change. the Formally:
 
 \begin{definition} [Instantiation of $\sim$ by States and Domains]
-\vspace{-7pt}
-\end{definition}
-{\footnotesize
-\begin{align*}
-\equidom{s}{d}{t} &\triangleq\ (is\_scheduler\ d \longrightarrow Cur\ s = Cur\ t) \\
-&\wedge (is\_partition\ d \longrightarrow Par\_Mem\ s\ d = Par\_Mem\ t\ d)
-\end{align*}
+{
+	\begin{align*}
+	\equidom{s}{d}{t} &\triangleq\ (d = \mathbb{S} \longrightarrow \xi\ s = \xi\ t)\ \wedge \\
+	& (\neg (d = \mathbb{S})\longrightarrow \mathcal{A}\ s\ d = \mathcal{A}\ t\ d)
+	\end{align*}
 }
-\vspace{-17pt}
+\end{definition}
+
 
 \subsubsection{Security Proofs}
-To prove the instantiated model is a security model, we have to prove item 1 to 5 in the definition of $\mathcal{S\_M}$. The first two assumptions are preserved by the interfering $\interf$ definition. The third assumption is preserved by $\sim$ for \emph{scheduler} domain. The fourth assumption of reachability is preserved with function \emph{exec\_event(E)} through a lemma as follows.
+To prove the instantiated model is a security model, we have to prove the assumptions of the security model $\mathcal{S\_M}$. The first two assumptions are preserved by the interfering $\interf$ definition. The third assumption is preserved by the definition of equivalence for the \emph{scheduler} domain. The fourth assumption on the reachability is preserved by the relation $\varphi$ together with the following lemma:
 
-\begin{lemma} [Reachability]
-\vspace{-7pt}
-\end{lemma}
-{\footnotesize
-\begin{align*}
-\forall s\ E.\ \mathcal{R}(s) \longrightarrow \exists s'.\ (s, s') \in exec\_event(E)
-\end{align*}
-}
-\vspace{-12pt}
-
-To prove the last assumption \emph{integrity(E)}, we add preconditions like $\mathcal{R}(s)$, \emph{is\_partition (Cur s)} and \emph{(Cur s) $\ninterf$ d} in implication expression for each interface function. We prove the theorem of integrity for each interface function through lemmas as follows.
+To prove the last assumption \emph{integrity(E)}, we prove the definition of integrity for each event. : 
 
 \begin{lemma} [Integrity of alloc\_memory]
-\vspace{-7pt}
 \end{lemma}
-{\footnotesize
+{
 \begin{align*}
-\forall d\ s\ s'\ rlv.\ &\mathcal{R}(s) \wedge is\_partition\ (Cur\ s) \wedge (Cur\ s) \ninterf d \\
+\forall d\ s\ s'\ rlv.\ &\mathcal{R}(s) \wedge (\xi\ s) \ninterf d \\
 &\wedge s' = alloc\_memory\ s\ rlv \longrightarrow \equidom{s}{d}{s'}
 \end{align*}
 }
-\vspace{-12pt}
 
 \begin{lemma} [Integrity of free\_memory]
 \vspace{-7pt}
 \end{lemma}
-{\footnotesize
+{
 \begin{align*}
-\forall d\ s\ s'\ b.\ &\mathcal{R}(s) \wedge is\_partition\ (Cur\ s) \wedge (Cur\ s) \ninterf d \\
+\forall d\ s\ s'\ b.\ &\mathcal{R}(s) \wedge (\xi\ s) \ninterf d \\
 &\wedge s' = free\_memory\ s\ b \longrightarrow \equidom{s}{d}{s'}
 \end{align*}
 }
-\vspace{-12pt}
+
 
 \begin{lemma} [Integrity of scheduler]
 \vspace{-7pt}
 \end{lemma}
-{\footnotesize
+{
 \begin{align*}
-\forall d\ s\ s'.\ is\_scheduler\ (Cur\ s) \wedge (Cur\ s) \ninterf d \longrightarrow \equidom{s}{d}{s'}
+\forall d\ s\ s'.(\xi\ s) \ninterf d \longrightarrow \equidom{s}{d}{s'}
 \end{align*}
 }
 \vspace{-12pt}
@@ -472,4 +511,4 @@ To prove the last assumption \emph{integrity(E)}, we add preconditions like $\ma
 $\forall$E $\in$ $\lbrace$alloc\_memory, free\_memory, scheduler$\rbrace$. integrity(E)
 \end{theorem}
 
-In the end, we prove that the event specification based on the buddy allocation specification satisfies the integrity property and is really a security model. According to the instantiation of $\interf$, one partition domain (the \emph{scheduler} domain can interfere any partition domain) cannot influence the memory address spaces of other partition domains. The integrity of memory address spaces ensures that memory information is trustworthy and accurate.
+In the end, we prove that the event specification based on the buddy allocation specification satisfies the integrity property and is really a security model. According to the instantiation of $\interf$, one partition domain (the \emph{scheduler} domain can interfere any partition domain) cannot influence the memory address spaces of other partition domains. The integrity of memory address spaces ensures that the allocation and deallocation algorithms are trustworthy and accurate.
