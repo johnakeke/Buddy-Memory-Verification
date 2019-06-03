@@ -8,7 +8,7 @@
 In this section, we give the necessary backgrounds for buddy memory allocation algorithms and Isabelle/HOL theorem prover.
 
 \subsection{Buddy Allocation Algorithms}\label{sec:buddy}
-The buddy allocation algorithm~\cite{reg_knuth} aims to minimize external fragmentation by partitioning the memory into blocks fitting as best as possible memory requests from applications. Starting from an initial block with capacity equal to the maximum available memory $\Omega$, blocks are split into a power-of-two number of blocks $\Gamma$ to ease address computation. Each of the split blocks are buddies of each other and will be coalesce into a single block whenever is possible when disposing an allocated block. 
+The buddy allocation algorithm aims to minimize external fragmentation by partitioning the memory into blocks fitting as best as possible memory requests from applications. Starting from an initial block with capacity equal to the maximum available memory $\Omega$, blocks are split into a power-of-two number of blocks $\Gamma$ to ease address computation. Each of the split blocks are buddies of each other and will be coalesce into a single block whenever is possible when disposing an allocated block. 
 
 This mechanism logically organizes the memory into levels, where each level $l$ hosts $\Gamma^l$ blocks of equal size $\Omega/{\Gamma}^l$. Assuming the maximum memory $\Omega$ is a constant, it is easy to show that the level containing blocks with the necessary capacity to satisfy a memory request of size $s$ is $\Delta_s \equiv \lceil log_\Gamma (\Omega/  s) \rceil$ where $\lceil n \rceil$ is the upper natural number of $n$. 
 
