@@ -6,3 +6,7 @@ Paper for Buddy Memory Allocation/Formal Verification for A Buddy Allocation Mod
 Paper for Buddy Memory Allocation/Formal Verification for A Buddy Allocation Model Specification\.synctex\.gz
 
 Paper for Buddy Memory Allocation/background\.log
+
+*.thy#
+
+*.thy~

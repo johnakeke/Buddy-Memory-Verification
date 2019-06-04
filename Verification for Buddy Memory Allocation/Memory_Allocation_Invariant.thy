@@ -27,6 +27,7 @@ inductive_cases diff_ids_leaf_node:
   "diff_ids (Leaf a)"
   "diff_ids (Node ll lr rl rr)"
 
+
 lemma diff_leaf1:
   "diff_ids (Node b1 b2 b3 b4) \<Longrightarrow>
   (L l) \<in> set b1 \<Longrightarrow>
@@ -504,7 +505,7 @@ qed
 lemma diff_ids_alloc_fail:
   "diff_ids_valid bset \<Longrightarrow>
   \<not> (exists_freelevel bset lv) \<Longrightarrow>
-  diff_ids_valid (fst (alloc bset lv ids))"
+  diff_ids_valid (fst (alloc bset lv))"
   unfolding alloc_def Let_def by auto
 
 lemma the_P:
@@ -518,14 +519,14 @@ lemma diff_ids_alloc_branch1:
   exists_freelevel bset lv \<Longrightarrow>
   lmax = freesets_maxlevel bset lv \<Longrightarrow>
   lmax = lv \<Longrightarrow>
-  (newbset, newids, re, reid) = alloc1 bset lv ids \<Longrightarrow>
+  (newbset, re) = alloc1 bset lv  \<Longrightarrow>
   diff_ids_valid newbset"
 proof-
   assume a0: "diff_ids_valid bset"
      and a1: "exists_freelevel bset lv"
      and a2: "lmax = freesets_maxlevel bset lv"
      and a3: "lmax = lv"
-     and a4: "(newbset, newids, re, reid) = alloc1 bset lv ids"
+     and a4: "(newbset, re) = alloc1 bset lv"
   have diff_bset1: "(\<forall>b \<in> bset. diff_ids b)"
     using a0 diff_ids_valid_def by auto
   have diff_bset2: "(\<forall>b1 b2. b1 \<in> bset \<and> b2 \<in> bset \<and> b1 \<noteq> b2 \<longrightarrow> id_set b1 \<inter> id_set b2 = {})"
@@ -559,7 +560,7 @@ proof-
   let ?newb = "SOME newb. newb = replace ?blo ?l (set_state_type ?l ALLOC)"
   have diff_newblo: "diff_ids ?newb"
     using diff_ids_replace diff_blo leaf_belong by simp
-  have alloc1_re: "(newbset, newids, re, reid) = (((bset - {?blo}) \<union> {?newb}), ids, True, {snd (L ?l)})"
+  have alloc1_re: "(newbset, re) = (((bset - {?blo}) \<union> {?newb}),  True)"
     using a4 unfolding alloc1_def by (metis some_eq_trivial)
   have diff_newbset1: "\<forall>b \<in> newbset. diff_ids b"
     using alloc1_re diff_bset1 diff_blo diff_newblo by blast
@@ -585,7 +586,7 @@ lemma ids_overlap_empty:
   id_set oth \<inter> {snd (L x)} = {} \<Longrightarrow>
   lmax < lv \<Longrightarrow>
   finite ids \<Longrightarrow>
-  id_set oth \<inter> id_set (fst (split x ids (lv - lmax))) = {}"
+  id_set oth \<inter> id_set (fst (split x  (lv - lmax))) = {}"
 proof(induct "lv - lmax" arbitrary: oth x ids lmax)
   case 0
   then show ?case by linarith

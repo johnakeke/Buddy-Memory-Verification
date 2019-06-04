@@ -8,6 +8,12 @@ datatype (set: 'a) tree = leaf: Leaf (L: 'a) |
                           node: Node (LL:"'a tree") (LR:"'a tree") (RL:"'a tree") (RR:"'a tree")
                         for map: tree_map   
 
+definition replace :: "'a tree \<Rightarrow>'a tree \<Rightarrow> 'a tree \<Rightarrow> 'a tree"
+  where "replace B b b' \<equiv> (tree_map (\<lambda>b1. if (b1 = L b) then (L b') else b1) B)"
+
+
+
+
 datatype block_state_type = FREE | ALLOC
 type_synonym ID = nat
 type_synonym Block = "(block_state_type \<times> ID) tree"
@@ -72,6 +78,7 @@ next
     unfolding compare4_def Let_def compare2_def l1 l2 l3 l4 by auto
   show ?case using l_node' l_node by auto
 qed
+
 
 fun get_level_node' :: "'a tree \<Rightarrow> 'a tree \<Rightarrow> nat \<Rightarrow> nat"
   where "get_level_node' (Leaf x) b n = (if leaf b \<and> (L b) = x then n else 0)" |
@@ -168,6 +175,82 @@ qed
 
 subsection \<open>def of function_call\<close>
 (*------------------------------------------------------------------------------------------------*)
+inductive id_not_in_mem :: "Block \<Rightarrow> ID \<Rightarrow> bool"
+  where id_not_in_leaf: "snd a \<noteq> v \<Longrightarrow> id_not_in_mem (Leaf a) v" |
+        id_not_in_Node: "id_not_in_mem ll v \<and> id_not_in_mem lr v \<and> id_not_in_mem rl v \<and> id_not_in_mem rr v
+                \<Longrightarrow> id_not_in_mem (Node ll lr rl rr) v"
+inductive_cases id_not_in_mem_node:
+  "id_not_in_mem (Node ll lr rl rr) v"
+
+definition id_not_in_set_mem::"Block set \<Rightarrow> ID \<Rightarrow> bool"
+  where "id_not_in_set_mem bs v \<equiv> \<forall>b \<in> bs. id_not_in_mem b v"
+
+lemma finite_ids_set:"finite (snd ` set b)"
+proof (induct b)
+  case (Leaf x)
+  then show ?case
+    using id_not_in_mem.cases by auto 
+next
+  case (Node b1 b2 b3 b4)
+  then show ?case
+    by (simp add: image_Un)  
+qed
+
+lemma finite_ids_set_set:"finite bs \<Longrightarrow> bs\<noteq>{} \<Longrightarrow> finite (\<Union>b\<in>bs. (snd ` set b))"
+proof (induct bs rule:finite_induct)
+case empty
+  then show ?case by auto
+next
+  case (insert x F) 
+  then show ?case
+  proof(cases F)
+    case emptyI
+    then show ?thesis using finite_ids_set by auto
+  next
+    case (insertI A a)
+    then have "finite (\<Union>b\<in>F. snd ` tree.set b)" using insert by auto
+    moreover have "finite (snd ` tree.set x)" using finite_ids_set by auto
+    ultimately show ?thesis by auto
+  qed
+qed
+
+lemma not_in_mem_not_in_set1:"id_not_in_mem b v \<Longrightarrow> v \<notin> snd ` set b"
+proof (induct b)
+  case (Leaf x)
+  then show ?case
+    using id_not_in_mem.cases by auto 
+next
+  case (Node b1 b2 b3 b4)
+  then show ?case using id_not_in_mem_node
+    by (metis UnE image_Un tree.simps(16)) 
+qed
+
+lemma not_in_mem_not_in_set2:"v \<notin> snd ` set b \<Longrightarrow> id_not_in_mem b v "
+proof (induct b)
+  case (Leaf x)
+  then show ?case    
+    by (simp add: id_not_in_leaf) 
+next
+  case (Node b1 b2 b3 b4)
+  then show ?case using id_not_in_mem_node
+    by (simp add: id_not_in_Node image_Un)
+qed
+
+lemma not_in_mem_not_in_set:"v \<notin> snd ` set b = id_not_in_mem b v "
+  using  not_in_mem_not_in_set1 not_in_mem_not_in_set2 by auto
+
+lemma  not_in_mem_set_not_in_set_set:
+"finite bs \<Longrightarrow> bs\<noteq>{} \<Longrightarrow> (v \<notin> (\<Union>b\<in>bs. (snd ` set b))) = id_not_in_set_mem bs v "
+proof(induct bs rule:finite_induct)
+  case empty
+  then show ?case by auto
+next
+  case (insert x F)
+  then show ?case using not_in_mem_not_in_set unfolding id_not_in_set_mem_def
+    by (meson UN_iff)    
+qed
+
+
 definition getnewid :: "ID set \<Rightarrow> (ID \<times> ID \<times> ID \<times> ID \<times> ID set)"
   where "getnewid ids \<equiv> let nid1 = SOME p1. p1 \<notin> ids;
                             ids1 = ids \<union> {nid1};
@@ -345,7 +428,122 @@ lemma getnewid_notbelong:
   xa \<notin> ids \<and> xb \<notin> ids \<and> xc \<notin> ids \<and> xd \<notin> ids"
   by (simp add: getnewid_anot getnewid_bnot getnewid_cnot getnewid_dnot)
 
-definition divide :: "Block \<Rightarrow> ID set \<Rightarrow> (Block \<times> ID set)"
+
+
+lemma exists_set_not_in_P:
+"\<not> (finite (UNIV::'a set)) \<Longrightarrow> finite (P::'a set) \<Longrightarrow> \<exists>s. finite s \<and> card s = n \<and> (s \<inter> P = {})"
+proof(induct n )
+case 0
+then show ?case
+  using card_empty by blast 
+next
+  case (Suc n)
+  then obtain s where "finite s \<and> card s = n \<and> s \<inter> P = {}" by auto
+  moreover have "s \<union> P \<noteq> UNIV" using Suc(2,3) calculation by (metis infinite_Un)
+  then obtain v where "v \<notin> s \<union> P"  by auto
+  ultimately show ?case
+    by (metis Int_insert_left UnI1 UnI2 card_insert_disjoint finite_insert)
+qed
+
+
+
+definition divide:: "ID set \<Rightarrow> Block set"
+  where "divide  ids \<equiv>
+         let ids1 = {s. (card s = 4 \<and> s \<inter> ids = {})} in             
+         {n. (\<exists>s x1 x2 x3 x4. s \<in> ids1 \<and>
+                              x1 \<in> s \<and> x2 \<in> s - {x1} \<and> x3 \<in> s - {x1,x2} \<and> x4 \<in> s -{x1,x2,x3} \<and>
+               n = (Node (Leaf (ALLOC, x1)) (Leaf (FREE, x2)) (Leaf (FREE, x3)) (Leaf (FREE, x4))))}                
+         "
+
+lemma exist_s_card_n:"\<not> (finite (UNIV::'b set)) \<Longrightarrow> 
+        finite (bs::('a \<times> 'b) tree set) \<Longrightarrow> 
+         bs\<noteq>{} \<Longrightarrow> 
+         \<exists>s. (card s = n \<and> s \<inter> (\<Union>b\<in>bs. (snd ` set b)) = {})"
+  using finite_ids_set_set exists_set_not_in_P by metis
+  
+lemma diff_set_not_empty:"card s = n \<Longrightarrow>
+       finite s' \<Longrightarrow>
+       card s' <n \<Longrightarrow>
+       (s - s') \<noteq>{}"
+  using card_mono not_less by auto
+  
+lemma elem_in_diff_set:"card s = n \<Longrightarrow>
+       finite s' \<Longrightarrow>
+       card s' <n \<Longrightarrow> \<exists>x.  x\<in> s - s'"
+  by (meson all_not_in_conv diff_set_not_empty)
+
+lemma assumes a0:"finite ids"      
+  shows "divide ids \<noteq> {}"
+proof-
+   obtain s where s:"((card s = 4 \<and> s \<inter> ids = {}))"
+    using exists_set_not_in_P a0
+    by (metis infinite_UNIV_nat)
+  obtain x1 where x1_in_s:"x1 \<in> s" using elem_in_diff_set s by fastforce    
+  moreover obtain x2 where x2_in_s:"x2 \<in> s - {x1}" using elem_in_diff_set[of s _ "{x1}"] by (auto simp: s)
+  moreover  obtain x3 where x3_in_s:"x3 \<in> s - {x1, x2}" using 
+    calculation elem_in_diff_set[of s _ "{x1,x2}"] by (auto simp: s)  
+  moreover obtain x4 where x4_in_s:"x4 \<in> s - {x1, x2,x3}" using s 
+    elem_in_diff_set[of s _ "{x1,x2,x3}"]  calculation
+    by  (auto simp: s)
+  ultimately have "card {x1,x2,x3,x4} = 4" by auto
+  then show ?thesis
+    unfolding divide_def Let_def 
+    using s x1_in_s x2_in_s x3_in_s x4_in_s apply auto   by metis    
+qed  
+
+lemma divide_dest1:assumes a0:"finite ids" 
+  shows "\<forall>node\<in> divide ids. snd ` set node \<inter> ids = {}"
+proof-   
+  let ?ids = "{s. (card s = 4 \<and> s \<inter> ids = {})}" 
+  { 
+    fix node
+    assume a00:"node \<in> divide ids"
+    then obtain s x1 x2 x3 x4 where 
+       spec:"s \<in> ?ids \<and> x1 \<in> s \<and> x2 \<in> s - {x1} \<and> x3 \<in> s - {x1,x2} \<and> x4 \<in> s -{x1,x2,x3} \<and>
+        node = (Node (Leaf (ALLOC, x1)) (Leaf (FREE, x2)) (Leaf (FREE, x3)) (Leaf (FREE, x4)))"
+      unfolding divide_def by auto    
+    then have "snd ` set node \<inter> ids = {}"
+      by auto
+  } thus ?thesis by auto
+qed
+
+lemma divide_dest2:assumes a0:"finite ids" 
+  shows "\<forall>node\<in> divide ids. card (set node) = 4"
+proof-   
+  let ?ids = "{s. (card s = 4 \<and> s \<inter> ids = {})}" 
+  { 
+    fix node
+    assume a00:"node \<in> divide ids"
+    then obtain s x1 x2 x3 x4 where 
+       spec:"s \<in> ?ids \<and> x1 \<in> s \<and> x2 \<in> s - {x1} \<and> x3 \<in> s - {x1,x2} \<and> x4 \<in> s -{x1,x2,x3} \<and>
+        node = (Node (Leaf (ALLOC, x1)) (Leaf (FREE, x2)) (Leaf (FREE, x3)) (Leaf (FREE, x4)))"
+      unfolding divide_def by auto    
+    then have "card (set node) = 4"
+      by auto
+  } thus ?thesis by auto
+qed
+
+lemma divide_dest3:assumes a0:"finite ids" and 
+   a2: "(Node n1 n2 n3 n4) \<in> divide ids"
+ shows "leaf n1 \<and> leaf n2 \<and> leaf n3 \<and> leaf n4 \<and>
+        snd (L n1) \<noteq> snd (L n2) \<and> snd (L n1) \<noteq> snd (L n3) \<and> snd (L n1) \<noteq> snd (L n4) \<and> 
+        snd (L n2) \<noteq> snd (L n1) \<and> snd (L n2) \<noteq> snd (L n3) \<and> snd (L n3)\<noteq> snd (L n4)"
+proof-   
+  let ?ids = "{s. (card s = 4 \<and> s \<inter> ids = {})}" 
+  let ?node = "(Node n1 n2 n3 n4)"
+   obtain s x1 x2 x3 x4 where 
+       spec:"s \<in> ?ids \<and> x1 \<in> s \<and> x2 \<in> s - {x1} \<and> x3 \<in> s - {x1,x2} \<and> x4 \<in> s -{x1,x2,x3} \<and>
+        ?node = (Node (Leaf (ALLOC, x1)) (Leaf (FREE, x2)) (Leaf (FREE, x3)) (Leaf (FREE, x4)))"
+      using a2 unfolding divide_def by auto    
+    then have "leaf n1 \<and> leaf n2 \<and> leaf n3 \<and> leaf n4 \<and>
+        snd (L n1) \<noteq> snd (L n2) \<and> snd (L n1) \<noteq> snd (L n3) \<and> snd (L n1) \<noteq> snd (L n4) \<and> 
+        snd (L n2) \<noteq> snd (L n1) \<and> snd (L n2) \<noteq> snd (L n3) \<and> snd (L n3)\<noteq> snd (L n4)"
+      by auto
+  thus ?thesis by auto
+qed
+
+   
+(* definition divide :: "Block \<Rightarrow> ID set \<Rightarrow> (Block \<times> ID set)"
   where "divide bl ids \<equiv>
          (let b = L bl;
               nids = getnewid ids;
@@ -360,7 +558,7 @@ lemma divide_diff:
   "finite ids \<Longrightarrow>
   fst (divide b ids) = Node (Leaf ll) (Leaf lr) (Leaf rl) (Leaf rr) \<Longrightarrow>
   snd ll \<noteq> snd lr \<and> snd ll \<noteq> snd rl \<and> snd ll \<noteq> snd rr"
-  unfolding divide_def Let_def using getnewid_diff1 by auto
+  unfolding divide_def Let_def ID setusing getnewid_diff1 by auto
 
 lemma divide_diff2:
   "finite ids \<Longrightarrow>
@@ -396,47 +594,31 @@ proof-
   have "finite (ids \<union> {xa, xb, xc, xd})" using a0 by auto
   then show ?thesis using obtain_divide by auto
 qed
+*)
+definition getnewid2 :: "Block set \<Rightarrow> ID"
+  where "getnewid2 bs \<equiv> SOME p. p \<notin> (\<Union>b\<in>bs. (snd ` set b))"
 
-definition getnewid2 :: "ID set \<Rightarrow> (ID \<times> ID set)"
-  where "getnewid2 ids \<equiv> let nid = SOME p. p \<notin> ids;
-                             nids = ids \<union> {nid} in
-                             (nid, nids)"
+  
+lemma fresh_elem:"\<not> (finite (UNIV::'b set)) \<Longrightarrow> finite (bs::('a \<times> 'b) tree set) \<Longrightarrow> 
+                   bs\<noteq>{} \<Longrightarrow> \<exists>p . p \<notin> (\<Union>b\<in>bs. (snd ` set b))"
+  using ex_new_if_finite finite_ids_set_set
+  by blast 
 
-lemma getnewid2_inc: "ids \<subseteq> snd(getnewid2 ids)"
+lemma newid_in_getnewid2: "getnewid2 bs \<in> (\<Union>b\<in>bs. (snd ` set b)) \<union> {(getnewid2 bs)}"
   unfolding getnewid2_def Let_def by auto
-
-lemma newid_in_getnewid2: "fst(getnewid2 ids) \<in> snd(getnewid2 ids)"
-  unfolding getnewid2_def Let_def by auto
-
-lemma exists_p_getnewid2: "\<exists>p. getnewid2 ids = (p, ids \<union> {p})"
-  unfolding getnewid2_def by metis
 
 lemma getnewid2_anot:
-  "finite ids \<Longrightarrow>
-  xa = fst (getnewid2 ids) \<Longrightarrow>
-  xa \<notin> ids"
+  "finite bs \<Longrightarrow> bs\<noteq>{} \<Longrightarrow>
+  xa = (getnewid2 bs) \<Longrightarrow>
+  xa \<notin> (\<Union>b\<in>bs. (snd ` set b))"
   unfolding getnewid2_def Let_def
-  apply auto
-  by (metis Collect_mem_eq finite_Collect_not infinite_UNIV_char_0 not_finite_existsD someI_ex)
+  using fresh_elem
+  by (metis infinite_UNIV_nat some_eq_ex)
 
-definition combine :: "Block \<Rightarrow> ID set \<Rightarrow> (Block \<times> ID set)"
-  where "combine b ids \<equiv> (if (\<exists>a1 a2 a3 a4. b = Node (Leaf (FREE, a1)) (Leaf (FREE, a2)) (Leaf (FREE, a3)) (Leaf (FREE, a4))) then
-                              let nids = getnewid2 ids;
-                                  newid = fst nids;
-                                  newids = snd nids in (Leaf (FREE, newid), newids)
-                           else (b, ids))"
-
-lemma combine_ids:
-  "ids \<subseteq> snd (combine b ids)"
-  unfolding combine_def Let_def
-  using getnewid2_inc by auto
-
-lemma combine_finite:
-  "finite ids \<Longrightarrow>
-  finite (snd (combine b ids))"
-  unfolding combine_def Let_def apply auto
-  using exists_p_getnewid2 snd_conv
-  by (metis Un_insert_right finite_insert sup_bot.right_neutral)
+definition combine :: "Block \<Rightarrow> Block set \<Rightarrow> Block"
+  where "combine b bs \<equiv> (if (\<exists>a1 a2 a3 a4. b = Node (Leaf (FREE, a1)) (Leaf (FREE, a2)) (Leaf (FREE, a3)) (Leaf (FREE, a4))) then
+                              (Leaf (FREE, getnewid2 bs))
+                           else b)"
 
 definition freesets :: "Block \<Rightarrow> Block set"
   where "freesets b = {l. leaf l \<and> L l \<in> set b \<and> fst (L l) = FREE}"
@@ -512,30 +694,19 @@ subsection \<open>def of sub core function\<close>
 definition set_state_type :: "Block \<Rightarrow> block_state_type \<Rightarrow> Block"
   where "set_state_type bl t \<equiv> (let b = (L bl) in Leaf (t, snd b))"
 
-definition replace :: "Block \<Rightarrow> Block \<Rightarrow> Block \<Rightarrow> Block"
-  where "replace B b b' \<equiv> (tree_map (\<lambda>b1. if (b1 = L b) then (L b') else b1) B)"
 
-lemma no_replace:
-  "L b \<notin> set blo \<Longrightarrow>
-  b' = set_state_type b t \<Longrightarrow>
-  tree_map (\<lambda>b1. if b1 = L b then L b' else b1) blo = blo"
-  by (smt tree.map_cong0 tree.map_ident)
-
-fun split :: "Block \<Rightarrow> ID set \<Rightarrow> nat \<Rightarrow> (Block \<times> ID set \<times> ID)"
-  where "split b ids lv = (if lv = 0 then (b, ids, snd (L b))
+fun split :: "Block \<Rightarrow> nat set \<Rightarrow> nat \<Rightarrow> Block"
+  where "split b ids lv = (if lv = 0 then b
                           else
-                            let re = divide b ids;
-                                node = fst re;
-                                newids = snd re;
-                                c1 = split (LL node) newids (lv - 1) in
-                                (Node (fst c1) (LR node) (RL node) (RR node), fst (snd c1), snd (snd c1)))"
+                            let  node = SOME l. l \<in> divide ids;                                
+                                c1 = split (LL node) (ids \<union> (snd ` (set node))) (lv - 1) in
+                                Node c1 (LR node) (RL node) (RR node))"
 
 lemma split_induct:
   "lv > 0 \<Longrightarrow>
-  fst (divide b ids) = Node (Leaf ll) (Leaf lr) (Leaf rl) (Leaf rr) \<Longrightarrow>
-  newids = snd (divide b ids) \<Longrightarrow>
-  fst (split b ids lv) = Node (fst (split (Leaf ll) newids (lv - 1))) (Leaf lr) (Leaf rl) (Leaf rr)"
-  using split.simps unfolding Let_def
+  Node (Leaf ll) (Leaf lr) (Leaf rl) (Leaf rr) \<in> (divide bs)  \<Longrightarrow>  
+  (split b bs lv) = Node ((split (Leaf ll) bs (lv - 1))) (Leaf lr) (Leaf rl) (Leaf rr)"
+  using split.simps unfolding Let_def sorry
   by (metis fst_conv less_not_refl3 tree.sel(2) tree.sel(3) tree.sel(4) tree.sel(5))
 
 fun replace_leaf :: "Block \<Rightarrow> Block \<Rightarrow> Block \<Rightarrow> Block"
@@ -544,6 +715,11 @@ fun replace_leaf :: "Block \<Rightarrow> Block \<Rightarrow> Block \<Rightarrow>
                                                      (replace_leaf n2 y st)
                                                      (replace_leaf n3 y st)
                                                      (replace_leaf n4 y st)"
+lemma no_replace:
+  "L b \<notin> set blo \<Longrightarrow>
+  b' = set_state_type b t \<Longrightarrow>
+  tree_map (\<lambda>b1. if b1 = L b then L b' else b1) blo = blo"
+  by (smt tree.map_cong0 tree.map_ident)
 
 lemma no_replace_leaf:
   "(L b) \<notin> set B \<Longrightarrow>
@@ -564,58 +740,51 @@ lemma replace_subbtr_belong:
   apply(induct B)
   by auto
 
-fun merge :: "Block \<Rightarrow> ID set \<Rightarrow> (Block \<times> ID set)"
-  where "merge (Leaf v) ids = ((Leaf v), ids)" |
-        "merge (Node ll lr rl rr) ids =
+fun merge :: "Block \<Rightarrow> Block set \<Rightarrow> Block"
+  where "merge (Leaf v) bs = (Leaf v)" |
+        "merge (Node ll lr rl rr) bs =
                 (if (\<exists>xa xb xc xd. (Node ll lr rl rr) = Node (Leaf (FREE, xa))
                                                              (Leaf (FREE, xb))
                                                              (Leaf (FREE, xc))
                                                              (Leaf (FREE, xd)))
-                 then combine (Node ll lr rl rr) ids
+                 then combine (Node ll lr rl rr) bs
                  else
-                    let m1 = merge ll ids;
-                        m2 = merge lr (snd m1);
-                        m3 = merge rl (snd m2);
-                        m4 = merge rr (snd m3) in
-                    combine (Node (fst m1) (fst m2) (fst m3) (fst m4)) (snd m4))"
+                    let m1 = merge ll bs;
+                        m2 = merge lr bs;
+                        m3 = merge rl bs;
+                        m4 = merge rr bs in
+                    combine (Node m1 m2 m3 m3) bs)"
 
-definition alloc1 :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool \<times> ID set)"
-  where "alloc1 bset lv ids \<equiv> (let blo = (SOME b. b \<in> bset \<and> freesets_level b lv \<noteq> {});
+definition alloc1 :: "Block set \<Rightarrow> nat \<Rightarrow>  (Block set \<times>  bool)"
+  where "alloc1 bset lv  \<equiv> (let blo = (SOME b. b \<in> bset \<and> freesets_level b lv \<noteq> {});
                                    b = (SOME l. l \<in> freesets_level blo lv);
                                    allocid = snd (L b);
                                    newblo = replace blo b (set_state_type b ALLOC) in
-                              ((bset - {blo}) \<union> {newblo}, ids, True, {allocid}))"
+                              ((bset - {blo}) \<union> {newblo}, True))"
 
-definition alloc :: "Block set \<Rightarrow> nat \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool \<times> ID set)"
-  where "alloc bset lv ids \<equiv>
+definition alloc :: "Block set \<Rightarrow> nat \<Rightarrow>  (Block set \<times> bool)"
+  where "alloc bset lv  \<equiv>
          if (exists_freelevel bset lv) then
             let lmax = freesets_maxlevel bset lv in
                 if lmax = lv then
-                   alloc1 bset lv ids
+                   alloc1 bset lv 
                 else
                    let blo = (SOME b. b \<in> bset \<and> freesets_level b lmax \<noteq> {});
-                       b = (SOME l. l \<in> freesets_level blo lmax);
-                       re = split b ids (lv - lmax);
-                       subbtr = fst re;
-                       newids = fst (snd re);
-                       allocid = snd (snd re);
-                       newbtr = replace_leaf blo b subbtr in
-                   (((bset - {blo}) \<union> {newbtr}), newids, True, {allocid})
-         else (bset, ids, False, {})"
+                       b = (SOME l. l \<in> freesets_level blo lmax);                                              
+                       newbtr = replace_leaf blo b (split b (\<Union>b\<in>bset. (snd ` set b)) (lv - lmax)) in
+                   (((bset - {blo}) \<union> {newbtr}), True)
+         else (bset, False)"
 
-definition free :: "Block set \<Rightarrow> Block \<Rightarrow> ID set \<Rightarrow> (Block set \<times> ID set \<times> bool)"
-  where "free bset b ids \<equiv>
+definition free :: "Block set \<Rightarrow> Block \<Rightarrow>(Block set \<times> bool)"
+  where "free bset b  \<equiv>
          if (\<exists>btree \<in> bset. (L b) \<in> set btree) then
             if fst (L b) = FREE then
-                (bset, ids, False)
+                (bset, False)
             else
                 let btree = (THE t. t \<in> bset \<and> (L b) \<in> set t);
-                    freeblo = replace btree b (set_state_type b FREE);
-                    re = merge freeblo ids;
-                    newblo = fst re;
-                    newids = snd re in
-                ((bset - {btree}) \<union> {newblo}, newids, True)
+                    freeblo = replace btree b (set_state_type b FREE) in
+                ((bset - {btree}) \<union> {merge freeblo bset}, True)
          else
-            (bset, ids, False)"
+            (bset, False)"
 
 end
