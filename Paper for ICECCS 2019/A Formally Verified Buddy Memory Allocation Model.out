@@ -1,0 +1,23 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Background}{}% 2
+\BOOKMARK [2][-]{subsection.2.1}{Buddy Allocation Algorithms}{section.2}% 3
+\BOOKMARK [2][-]{subsection.2.2}{Isabelle/HOL}{section.2}% 4
+\BOOKMARK [1][-]{section.3}{Specification of Buddy Allocation Model}{}% 5
+\BOOKMARK [2][-]{subsection.3.1}{State Representation}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.2}{Allocation Model}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.3}{Deallocation Model}{section.3}% 8
+\BOOKMARK [1][-]{section.4}{Verification}{}% 9
+\BOOKMARK [2][-]{subsection.4.1}{Functional correctness}{section.4}% 10
+\BOOKMARK [3][-]{subsubsection.4.1.1}{Allocation}{subsection.4.1}% 11
+\BOOKMARK [3][-]{subsubsection.4.1.2}{Deallocation}{subsection.4.1}% 12
+\BOOKMARK [3][-]{subsubsection.4.1.3}{Correct Merging}{subsection.4.1}% 13
+\BOOKMARK [3][-]{subsubsection.4.1.4}{Memory Isolation}{subsection.4.1}% 14
+\BOOKMARK [2][-]{subsection.4.2}{A Security Model}{section.4}% 15
+\BOOKMARK [3][-]{subsubsection.4.2.1}{Memory State Machine}{subsection.4.2}% 16
+\BOOKMARK [3][-]{subsubsection.4.2.2}{Integrity Definition}{subsection.4.2}% 17
+\BOOKMARK [3][-]{subsubsection.4.2.3}{Security Model}{subsection.4.2}% 18
+\BOOKMARK [2][-]{subsection.4.3}{Instantiation and Security Proofs}{section.4}% 19
+\BOOKMARK [3][-]{subsubsection.4.3.1}{Instantiation}{subsection.4.3}% 20
+\BOOKMARK [3][-]{subsubsection.4.3.2}{Security Proofs}{subsection.4.3}% 21
+\BOOKMARK [1][-]{section.5}{Conclusions and Future Work}{}% 22
+\BOOKMARK [1][-]{section*.1}{References}{}% 23

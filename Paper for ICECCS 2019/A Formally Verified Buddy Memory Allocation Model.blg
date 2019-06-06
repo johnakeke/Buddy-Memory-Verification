@@ -1,0 +1,58 @@
+This is BibTeX, Version 0.99d (TeX Live 2019/dev/Debian)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: A Formally Verified Buddy Memory Allocation Model.aux
+The style file: IEEEtran.bst
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: reference.bib
+-- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty journal in reg_higham
+
+Done.
+You've used 21 entries,
+            4087 wiz_defined-function locations,
+            1002 strings with 13561 characters,
+and the built_in function-call counts, 17242 in all, are:
+= -- 1388
+> -- 398
+< -- 131
++ -- 205
+- -- 68
+* -- 883
+:= -- 2659
+add.period$ -- 52
+call.type$ -- 21
+change.case$ -- 31
+chr.to.int$ -- 306
+cite$ -- 22
+duplicate$ -- 1192
+empty$ -- 1436
+format.name$ -- 91
+if$ -- 3988
+int.to.chr$ -- 0
+int.to.str$ -- 21
+missing$ -- 224
+newline$ -- 118
+num.names$ -- 32
+pop$ -- 523
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 2
+skip$ -- 1322
+stack$ -- 0
+substring$ -- 734
+swap$ -- 961
+text.length$ -- 29
+text.prefix$ -- 0
+top$ -- 5
+type$ -- 21
+warning$ -- 1
+while$ -- 83
+width$ -- 23
+write$ -- 271
+(There was 1 warning)
