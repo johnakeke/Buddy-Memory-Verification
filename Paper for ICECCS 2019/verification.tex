@@ -17,63 +17,100 @@ We first show that the allocation service does not change the state when none of
 
 As described in Section~\ref{sec:buddy} to allocate a memory block of size $rs$, there must be a free block on a level lower or equal than $\Delta_{rs}$. So under the assumption that there does not exist such a block, the allocation procedure leaves the state unchanged.
 
-Then we show that if there is a memory pool with a block big enough to allocate the requested size $rs$, then \textbf{alloc} adds an allocated block at level $\Delta_{rs}$. We first split the lemma in two cases. The first case to the case in which level $\Delta_{rs}$ has free blocks, and hence the free block is not split but modified, it is shown in lemma~\ref{lemma:free_min2}. The second case is when $\Delta_{rs}$ does not have free blocks, and hence a free block in a level $l < \Delta_{rs}$ is split till reach level $\Delta_{rs}$ and it is shown in lemma lemma~\ref{lemma:free_nomin}.
+Then we show that if there is a memory pool with a block big enough to allocate the requested size $rs$, then \textbf{alloc} adds an allocated block at level $\Delta_{rs}$, and guarantees any other allocated block unchanged at its own level different from $\Delta_{rs}$. We first split the lemma in two cases. The first case to the case in which level $\Delta_{rs}$ has free blocks, and hence the free block is not split but modified, it is shown in lemma~\ref{lemma:alloc_directalloc}. The second case is when $\Delta_{rs}$ does not have free blocks, and hence a free block in a level $l < \Delta_{rs}$ is split till reach level $\Delta_{rs}$ and it is shown in lemma lemma~\ref{lemma:alloc_indirectalloc}.
 
 %Then Lemma~\ref{pp2} and~\ref{pp3} respectively describe a transition during a direct allocation process. It says that the \emph{FREE} Leaf node which is to be allocated no longer belongs to free sets, and is a part of allocated sets. A direct allocation precess means that the existence of such a Block tree in \emph{b\_set}, the levels of whose \emph{FREE} leaf nodes are less than or equal to the value of \emph{rlv}. In particular, the maximum level among these \emph{FREE} leaf nodes is equal to the value of \emph{rlv}. Therefore, the function picks up a \emph{FREE} Leaf node in level \emph{rlv} to allocate.
 
 \begin{lemma} [Allocsets for Direct Allocation]
-\label{lemma:free_min2}
+\label{lemma:alloc_directalloc}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
 &exists\_freelevel\ b\_set\ \Delta_{rs}\ \wedge\\
-&freesets\_maxlevel\ b\_set\ \Delta_{rs} = \Delta_{rs} \longrightarrow\\ 
-&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\ \Delta_{rs})\ \wedge\\
-&\ \ \ \ allocsets\ (alloc\ b\_set\ \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace\ \wedge\\
-&\ \ \ \ level\ (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs}
+&freesets\_maxlevel\ b\_set\ \Delta_{rs} = \Delta_{rs} \longrightarrow\\
+&\forall l \ne \Delta_{rs}.\ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ alloc\_lvl\ b\_set\ l\ \wedge\\
+&\exists le.\ le \notin alloc\_lvl\ b\_set\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ le \in alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs} =\\
+&\ \ \ \ \ alloc\_lvl\ b\_set\ \Delta_{rs} \cup \lbrace le \rbrace
 \end{align*}
 \vspace{-12pt}
 %Lemma~\ref{pp4} introduces a transition during an indirect allocation process. The precondition preserves the existence of such a Block tree in \emph{b\_set}, that the levels of whose \emph{FREE} Leaf nodes are less than or equal to the value of \emph{rlv}. However, the maximum level among these \emph{FREE} Leaf nodes is less than the value of \emph{rlv}. With this precondition, function \emph{split} is invoked to divide a bigger Leaf node into small Leaf nodes until a Leaf node appears which satisfies the request. Then postcondition guarantees that a new Leaf node is added into the allocated set, while it dose not belong to this set previously.
 
 \begin{lemma} [Allocsets for Indirect Allocation]
-\label{lemma:free_nomin}
+\label{lemma:alloc_indirectalloc}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
 &exists\_freelevel\ b\_set\ \Delta_{rs}\ \wedge\\
 &freesets\_maxlevel\ b\_set\ \Delta_{rs} \neq \Delta_{rs} \longrightarrow\\
-&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\ \Delta_{rs})\ \wedge\\
-&\ \ \ \ allocsets\ (alloc\ b\_set\ \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace\ \wedge\\
-&\ \ \ \ level\ (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs}
+&\forall l \ne \Delta_{rs}.\ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ alloc\_lvl\ b\_set\ l\ \wedge\\
+&\exists le.\ le \notin alloc\_lvl\ b\_set\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ le \in alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs} =\\
+&\ \ \ \ \ alloc\_lvl\ b\_set\ \Delta_{rs} \cup \lbrace le \rbrace
 \end{align*}
 \vspace{-12pt}
 
-From lemmas~\ref{lemma:free_min2} and~\ref{lemma:free_nomin} we show the final lemma~\ref{lemma:alloc} on the functional correctness of \textbf{alloc} with regards to allocated memory blocks.
+From lemmas~\ref{lemma:alloc_directalloc} and~\ref{lemma:alloc_indirectalloc} we show the final lemma~\ref{lemma:alloc_alloc} on the functional correctness of \textbf{alloc} with regards to allocated memory blocks.
 
 \begin{lemma} [Allocsets for Allocation]
-\label{lemma:alloc}
+\label{lemma:alloc_alloc}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
-&exists\_freelevel\ b\_set\  \Delta_{rs} \longrightarrow \\
-&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\  \Delta_{rs})\ \wedge\\
-&\ \ \ \ allocsets\ (alloc\ b\_set\  \Delta_{rs}) = allocsets\ b\_set \cup \lbrace l \rbrace\ \wedge\\
-&\ \ \ \ level (alloc\ b\_set\ \Delta_{rs})\ l = \Delta_{rs}
+&exists\_freelevel\ b\_set\  \Delta_{rs} \longrightarrow\\
+&\forall l \ne \Delta_{rs}.\ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alloc\_lvl\ b\_set\ l\ \wedge\\
+&\exists le.\ le \notin alloc\_lvl\ b\_set\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ le \in alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ alloc\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs} =\\
+&\ \ \ \ \ alloc\_lvl\ b\_set\ \Delta_{rs} \cup \lbrace le \rbrace
 \end{align*}
 \vspace{-12pt}
 
-For the allocation algorithm, we also show in lemma~\ref{lemma:free_alloc} that any free block in the initial set of memory pools $b\_set$, different than the block being allocated, remains free after allocation.
+For the allocation algorithm, we also show in lemma~\ref{lemma:free_directalloc} that if there is a memory pool with a block big enough to allocated the requested size $rs$, then any free block in the initial set of memory pools $b\_set$, different from the block being allocated, remains free after allocation. And \textbf{alloc} removes the block being allocated from level $\Delta_{rs}$.
 
-\begin{lemma} [Freesets for Allocation]
-\label{lemma:free_alloc}
+\begin{lemma} [Freesets for Direct Allocation]
+\label{lemma:free_directalloc}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
-&exists\_freelevel\ b\_set\ \Delta_{rs} \wedge\\
-&freesets\_maxlevel\ b\_set\ \Delta_{rs} \neq \Delta_{rs} \longrightarrow\\
-&\exists l.\ l \notin allocsets\ b\_set \wedge l \in allocsets\ (alloc\ b\_set\ \Delta_{rs})\ \wedge\\
-&\ \ \ \ \forall l'.\ l' \neq l \wedge l' \in freesets\ b\_set \longrightarrow\\
-&\ \ \ \ \ \ \ \ \ l' \in freesets\ (alloc\ b\_set\ \Delta_{rs}) 
+&exists\_freelevel\ b\_set\ \Delta_{rs}\ \wedge\\
+&freesets\_maxlevel\ b\_set\ \Delta_{rs} = \Delta_{rs} \longrightarrow\\
+&\forall l \ne \Delta_{rs}.\ free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ l\ \wedge\\
+&\exists le.\ le \in free\_lvl\ b\_set\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ le \notin free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs}\ \wedge\\
+&\ \ \ \ \ free\_lvl\ b\_set\ \Delta_{rs} =\\
+&\ \ \ \ \ free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ \Delta_{rs} \cup \lbrace le \rbrace
+\end{align*}
+\vspace{-12pt}
+
+We also show in lemma~\ref{lemma:free_indirectalloc} that if $\Delta_{rs}$ does not have free blocks, and hence a free block in a level $lmax < \Delta_{rs}$ is split till reach level $\Delta_{rs}$, then (1)any free block 
+
+\begin{lemma} [Freesets for Indirect Allocation]
+	\label{lemma:free_indirectalloc}
+\end{lemma}
+\vspace{-7pt}
+\begin{align*}
+&exists\_freelevel\ b\_set\ \Delta_{rs}\ \wedge\\
+&freesets\_maxlevel\ b\_set\ \Delta_{rs} = lmax\ \wedge\\
+&lmax < \Delta_{rs} \longrightarrow\\
+&(1) \forall l < lmax \vee l > \Delta_{rs}.\\
+&\ \ \ \ \ free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l =\\
+&\ \ \ \ \ free\_lvl\ b\_set\ l\ \wedge\\
+&(2) \exists le.\ le \in free\_lvl\ b\_set\ lmax\ \wedge\\
+&\ \ \ \ \ le \notin free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ lmax\ \wedge\\
+&\ \ \ \ \ free\_lvl\ b\_set\ lmax =\\
+&\ \ \ \ \ free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ lmax \cup \lbrace le \rbrace\ \wedge\\
+&(3) \forall l > lmax \wedge l \le \Delta_{rs}.\\
+&\ \ \ \ \ \forall le.\ le \in free\_lvl\ b\_set\ l \longrightarrow\\
+&\ \ \ \ \ \ \ \ \ \ le \in free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l\ \wedge\\
+&\ \ \ \ \ card\ (free\_lvl\ (alloc\ b\_set\ \Delta_{rs})\ l) =\\
+&\ \ \ \ \ card\ (free\_lvl\ b\_set\ l) + 3
 \end{align*}
 
 \subsubsection{Deallocation}\label{sec:functionalDealloc}
@@ -95,31 +132,53 @@ For deallocation, we first show in lemmas~\ref{lemma:deallocate_fail1} and~\ref{
 \end{align*}
 \end{lemma}
 
-Then we show in Lemma~\ref{lemma:deallocation} that the deallocation process carries out a correct transition during a deallocation success process. It describes that the Leaf node, which is to be released, dose not belong to allocated set any more.
+Then we show in Lemma~\ref{lemma:alloc_deallocation} that the deallocation process carries out a correct transition during a deallocation success process. It describes that the Leaf node, which is to be released, dose not belong to allocated set any more.
 
 \begin{lemma} [Allocsets for Deallocation]
-\label{lemma:deallocation}
+\label{lemma:alloc_deallocation}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
-&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE \longrightarrow \\ 
-&b\notin allocsets\ (free\ b\_set\ b)\ \wedge \\
-&allocsets\ b\_set = allocsets\ (free\ b\_set\ b) \cup \lbrace b \rbrace
+&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ level\ btree\ b = l_b \longrightarrow\\
+&\forall l \ne l_b.\ alloc\_lvl\ (free\ b\_set\ b)\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ alloc\_lvl\ b\_set\ l\ \wedge\\
+&b \in alloc \_lvl\ b\_set\ l_b\ \wedge\\
+&b \notin alloc\_lvl\ (free\ b\_set\ b)\ l_b\ \wedge\\
+&alloc\_lvl\ b\_set\ l_b = alloc\_lvl\ (free\ b\_set\ b)\ l_b \cup \lbrace b \rbrace
 \end{align*}
 \vspace{-12pt}
 
-With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. However, we have to ensure that any free memory block after deallocating, different than the block resulting of the deallocation process, has to be also free in the initial set of free blocks $b\_set$. We show this in Lemma~\ref{lemma:freedealloc}.
+With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. However, we have to ensure that any free memory block after deallocating, different than the block resulting of the deallocation process, has to be also free in the initial set of free blocks $b\_set$. We show this in Lemma~\ref{lemma:free_deallocation}.
 
 \begin{lemma} [Freesets for Deallocation]
-\label{lemma:freedealloc}
+\label{lemma:free_deallocation}
 \end{lemma}
 \vspace{-7pt}
 \begin{align*}
-&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE \longrightarrow\\
-&(1) \exists b'\ lvl.\ b' \in free\_lvl\ (free\ b\_set\ b)\ lvl\ \wedge\\
-&\ \ \ \ \ \ \ \ \ \ \ \ \ b' \notin free\_lvl\ b\_set\ lvl\ \wedge\\
-&(2) \forall b''.\ b''\neq b' \wedge b \in freesets\ (free\ b\_set\ b) \longrightarrow\\
-&\ \ \ \ \ \ \ \ \ b'' \in freesets\ b\_set
+&\exists btree \in b\_set.\ b \in set\ btree \wedge fst\ b \neq FREE\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ level\ btree\ b = l_b \longrightarrow\\
+&(\exists lvl\ b'.\ lvl < l_b \wedge b' \notin free\_lvl\ b\_set\ lvl\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ b' \in free\_lvl\ (free\ b\_set\ b)\ lvl\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ free\_lvl\ (free\ b\_set\ b)\ lvl =\\
+&\ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ lvl \cup \lbrace b' \rbrace \longrightarrow\\
+&\ \ \ \ \ (1)\forall l < lvl \vee l > l_b.\ free\_lvl\ (free\ b\_set\ b)\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ l\ \wedge\\
+&\ \ \ \ \ (2)\forall l > lvl \wedge l \le l_b.\\
+&\ \ \ \ \ \ \ \ \ \forall b''.\ b'' \in free\_lvl\ (free\ b\_set\ b)\ l \longrightarrow\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ b'' \in free\_lvl\ b\_set\ l\ \wedge\\
+&\ \ \ \ \ \ \ \ \ card\ (free\_lvl\ b\_set\ l) =\\
+&\ \ \ \ \ \ \ \ \ card\ (free\_lvl\ (free\ b\_set\ b)\ l) + 3)\ \wedge\\
+&(\nexists lvl\ b'.\ lvl < l_b \wedge b' \notin free\_lvl\ b\_set\ lvl\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ b' \in free\_lvl\ (free\ b\_set\ b)\ lvl\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ free\_lvl\ (free\ b\_set\ b)\ lvl =\\
+&\ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ lvl \cup \lbrace b' \rbrace \longrightarrow\\
+&\ \ \ \ \ \forall l \ne l_b.\ free\_lvl\ (free\ b\_set\ b)\ l =\\
+&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ l\ \wedge\\
+&\ \ \ \ \ \exists b''.\ b'' \notin free\_lvl\ b\_set\ l_b\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ \ b'' \in free\_lvl\ (free\ b\_set\ b)\ l_b\ \wedge\\
+&\ \ \ \ \ \ \ \ \ \ \ free\_lvl\ (free\ b\_set\ b)\ l_b =\\
+&\ \ \ \ \ \ \ \ \ \ \ free\_lvl\ b\_set\ l_b \cup \lbrace b \rbrace)
 \end{align*}
 \vspace{-12pt}
 
@@ -264,7 +323,7 @@ is\_different\ &b\_set \longrightarrow\\
 
 %Finally, with the assumptions that the correctness of the mapping function between a \emph{ID} and a real address, and promising its uniqueness, we prove the specification preserves the isolation of memory address spaces.
 
-Considering that a block ID allows us to uniquely identify a memory block, the lemma on uniqueness of blocks and Lemma~\ref{lemma:alloc} allows to infer non-overlapping of allocation of memory blocks. That is, that two different allocations do not assign the same memory block.
+Considering that a block ID allows us to uniquely identify a memory block, the lemma on uniqueness of blocks and Lemma~\ref{lemma:alloc_alloc} allows to infer non-overlapping of allocation of memory blocks. That is, that two different allocations do not assign the same memory block.
 
 Note that although our level of abstraction does not consider memory addresses, it would be easy to refine this model to include memory addresses and identify the domain of addresses of a memory block as a function in terms of the location of the memory block in the tree.
 
