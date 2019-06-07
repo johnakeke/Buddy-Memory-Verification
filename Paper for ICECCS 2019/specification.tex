@@ -1,3 +1,11 @@
+
+\begin{figure*}[htbp]
+	\centering
+	\includegraphics[width=0.7\textwidth]{fig1.pdf}
+	\caption{The progress of dividing a free leaf}
+	\label{fig:splitleaf}
+\end{figure*}
+
 \section{Specification of Buddy Allocation Model}\label{sec:spec}
 The specification of the buddy memory allocation consists of a model for the necessary data structures to represent the memory layouts, as well as the allocation and disposal operations. This specification follows the algorithm for the buddy memory management in Zephyr OS, which applies a quartering split over blocks.
 
@@ -18,7 +26,7 @@ ID\ &=\ nat \\
 BlockTree\ &=\ (block\_state\_type\ \times\ ID)\ tree
 \end{align*}
 
-The allocation and free services are defined as a number of operations over the \emph{quad-tree} data structure representing the memory. These operations manipulate a \textsl{BlockTree}, accessing and modifying its structure and the data it stores. Function \textbf{level} takes two \emph{BlockTree}, \emph{btree} and \emph{b}, and it returns a natural number \emph{level} that represents the layer number where \emph{b} is located in \emph{btree} from the root node. The level of a node with regards to itself is $0$, and if the \emph{blocktree} $b$ does not belongs to $btree$ the function also returns $0$. Functions \textbf{allocsets} and \textbf{freesets} take a \emph{BlockTree} \emph{btree} and returns a \emph{BlockTree} set \emph{aset} of all the Leaf nodes from \emph{btree} whose \emph{block\_state\_type} are well \emph{ALLOC} for the function \textbf{allocsets}, well \emph{FREE} for the function \textbf{freesets}. Function \textbf{free\_lvl} takes a \emph{Blocktree} \emph{btree} and a natural number $l$, and it returns a set with all the free Leaf nodes located at level $l$ in \emph{btree}. We use the notation \emph{idset} to represent the collection of all used \emph{IDs}. To create a new Leaf node, we pick up as new \emph{ID} any natural number not belonging to \emph{idset}.
+The allocation and free services are defined as a number of operations over the \emph{quad-tree} data structure representing the memory. These operations manipulate a \textsl{BlockTree}, accessing and modifying its structure and the data it stores. Function \textbf{level} takes two \emph{BlockTree}, \emph{btree} and \emph{b}, and it returns a natural number \emph{level} that represents the layer number where \emph{b} is located in \emph{btree} from the root node. The level of a node with regards to itself is $0$, and if the \emph{blocktree} $b$ does not belongs to $btree$ the function also returns $0$. We use the definitions \textbf{free\_lvl} \textbf{alloc\_lvl}, which take \emph{Blocktree} \emph{btree} and a natural number $l$, to respectively obtain the set with all the free and allocated \emph{Leaf} nodes located at level $l$ in \emph{btree}. We use the notation \emph{idset} to represent the collection of all used \emph{IDs}. To create a new Leaf node, we pick up as new \emph{ID} any natural number not belonging to \emph{idset}.
 
 %Before introducing allocation model, we create a function \textbf{output\_level} \correct{that maps requested size to the allocation level in a quad-tree}{mapping levels of a }. The input parameters are a natural list \emph{blo\_list} and a natural \emph{rsize}. Static linked list \emph{blo\_list} is used to store all possible sizes of blocks in a quad-tree, and its indexes represent the levels of blocks located in this quad-tree. For example, the size of root node is 1024\emph{Mbytes} and the first level of quad-tree is 256\emph{Mbytes}, then \emph{blo\_list}!0 is equal to 1024 and \emph{blo\_list}!1 is 256. The \emph{blo\_list} is a strictly decreasing list to simulate the fact that the smaller the level is, the larger size the memory block owns. This function returns a natural index \emph{l} in \emph{blo\_list} with these constrains: the size it represents has to be greater than or equal to the size of requested block, and there is no smaller size that meets this condition. After that, the block size is picked up from \emph{blo\_list}, and then mapped to the correct level of the quad-tree by the index \emph{l} in \emph{blo\_list}. We use \emph{rlv} to represent the output. The definition of this mapping is as follows.
 
@@ -34,101 +42,98 @@ The allocation and free services are defined as a number of operations over the 
 %}
 
 \subsection{Allocation Model}
-The allocation takes as input a set of quad-trees representing the available memory pools $bset$, and a natural number $s$ representing the requested size of the memory to allocate. If $s$ is bigger than the maximum size $\Omega$ for any memory pool, then the allocation fails and the state is not modified. If $s$ is smaller or equal than $\Omega$, then it calls function \textbf{alloc} over $bset$ and the level $rlv$ containing blocks of size bigger or equal to $s$, given by $\Delta_s$ as defined in Section~\ref{sec:buddy}. Function \textbf{alloc} carries out the necessary operations to find a block of size bigger or equal than $s$, and conducts the necessary modifications on $bset$ as we describe below.
 
-\begin{figure*}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig1.pdf}
-	\caption{The progress of dividing a free leaf}
-	\label{fig:splitleaf}
+\begin{definition} [Allocation Operation]
+	\begin{align*}
+	&alloc\ bset\ \Delta_s \triangleq \\
+	&if\ exists\_freelevel\ bset\ \Delta_s\ then \\
+	&\ \ \ \ lmax = freesets\_ml\ bset\ \Delta_s \\
+	&\ \ \ \ btree = SOME\ b.\ b \in bset\ \wedge free\_lvl\ b\ \Delta_s  \ne \emptyset \\
+	&\ \ \ \ le = SOME\ l.\ l \in free\_lvl\ btree\ \Delta_s  \\
+	&\ \ \ \ if\ lmax = \Delta_s\ then \\
+	&\ \ \ \ \ \ \ \ btree' = replace\ btree\ le\ (set\_type\ le\ ALLOC) \\
+	&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree' \rbrace,\ True) \\
+	&\ \ \ \ else \\
+	&\ \ \ \ \ \ \ \ btree' = replace\ btree\ le\ (split\ le\ (\Delta_s  - lmax)) \\
+	&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree' \rbrace,\ True) \\
+	&else\ return\ (bset,\ False)
+	\end{align*}
+\end{definition}
+
+
+The allocation takes as input a set of quad-trees representing the available memory pools $bset$, and a natural number $s$ representing the requested size of the memory to allocate. If $s$ is bigger than the maximum size $\Omega$ for any memory pool, then the allocation fails and the state is not modified. If $s$ is smaller or equal than $\Omega$, then it calls function \textbf{alloc} over $bset$ and the level $\Delta_s$ containing blocks of size bigger or equal to $s$, as defined in Section~\ref{sec:buddy}. Function \textbf{alloc} carries out the necessary operations to find a block of size bigger or equal than $s$, and conducts the necessary modifications on $bset$ as we describe below.
+
+\begin{figure*}[tbp]
+\centering
+\includegraphics[width=0.7\textwidth]{fig2.pdf}
+\caption{The progress of merging all free memory blocks}
+\label{fig:merginfreeblocks}
 \end{figure*}
 
-We explain first functions that \textbf{alloc} uses to obtain the level on a system with free blocks with capacity to allocate a requested size: \textbf{exists\_freelevel} and \textbf{freesets\_maxlevel}. We first provide a description of these functions. Function \textbf{exists\_freelevel} is a predicate taking as input a set of \emph{BlockTree} $bset$ (the collection of all quad-trees in memory system) and a natural number $rlv$, and returns true if there exist a \emph{BlockTree} $b \in bsets$ and a level $l$ in $b$ such that $l$ has at least a free node. Function \textbf{freesets\_maxlevel} has the same inputs, and it returns the maximum level less or equal than \emph{rlv} having at least a free node. Formally:
 
-\begin{definition} [Existence of Free Leaf Nodes]
-\begin{align*}
-exists\_freelevel\ &bset\ rlv \triangleq \exists l\ b.\ l \leq rlv\ \wedge\\
-&b \in bset \wedge freesets\_level\ b\ l \ne \emptyset
-\end{align*}
-\end{definition}
+%Alloc uses the predicate \textbf{exists\_freelevel}, with parameters $bset$ and $rlv$, to check if there exists a \emph{BlockTree} $b \in bsets$ and a level $l\leq rlv$ in $b$ such that $l$ has at least a free node.  and \textbf{freesets\_ml}. We first provide a description of these functions. Function \textbf{freesets\_ml} has the same inputs, and it returns the maximum level less or equal than $rlv$ for which it sets of free levels is not empty. Formally:
+%
+%\begin{definition} [Existence of Free Leaf Nodes]
+%\begin{align*}
+%exists&\_freelevel\ bset\ rlv \triangleq \\
+%&\exists l\ b.\ l \leq rlv\ \wedge b \in bset \wedge free\_lvl\ b\ l \ne \emptyset
+%\end{align*}
+%\end{definition}
+%
+%\begin{definition} [Maximum Level of Free Leaf Nodes]
+%\begin{align*}
+%free&sets\_maxlevel\ bset\ rlv \triangleq THE\ lmax.\\
+%&lmax \leq rlv\ \wedge \exists b \in bset.\ free\_lvl\ b\ lmax \neq \emptyset\ \wedge\\
+%&(\forall l \leq rlv.\ \exists b \in bset.\ free\_lvl\ b\ l \ne \emptyset \longrightarrow \\
+%&\ \ \ l \leq lmax)
+%\end{align*}
+%\end{definition}
 
-\begin{definition} [Maximum Level of Free Leaf Nodes]
-\begin{align*}
-freesets\_&maxlevel\ bset\ rlv \triangleq THE\ lmax.\\
-&lmax \leq rlv\ \wedge\\
-&\exists b \in bset.\ freesets\_level\ b\ lmax \neq \emptyset\ \wedge\\
-&(\forall l \leq rlv.\ \exists b \in bset.\ freesets\_level\ b\ l \ne \emptyset\\
-&\ \ \ \longrightarrow l \leq lmax)
-\end{align*}
-\end{definition}
 
-During the allocation process, if there is not any free Leaf node available at the best fit level $l$ for the requested size, but there exists a higher level $hl \geq l$ with free blocks, it is necessary to start the splitting process from $hl$ down to $l$. Function \textbf{split} recursively divides $hl - l$ times a Leaf node \emph{b} into a Node tree \emph{btree}. It uses the function \textbf{divide} that takes a Leaf node \emph{b} and returns a new non-terminal Node tree \emph{n} with four terminal Leaf nodes. The division operation is always conducted on the leftmost subtree of $n$ marking it as allocated, while the rest are marked as \emph{FREE}. A simple example describing this process is shown in Fig.~\ref{fig:splitleaf}. We define the \emph{split} operation as follows.
+
+
+%In addition, the allocation uses functions \textbf{set\_type}, \textbf{replace} and \textbf{replace\_leaf}. Function \emph{set\_type} takes a Leaf node \emph{b} and a target \emph{block\_state\_type} \emph{s} as inputs, and returns a leaf \emph{b'} resulting of changing the state of \emph{b} to \emph{s}. Function \emph{replace} takes a \emph{BlockTree} \emph{btree}, two Leaf nodes \emph{b} and \emph{b'} as inputs, and returns a tree replacing the Leaf node \emph{b} with \emph{b'} in \emph{btree}. Function \emph{replace\_leaf} takes a \emph{BlockTree} \emph{btree}, a Leaf node \emph{b} and a Node tree \emph{btr} as inputs, and returns the tree that replaces the Leaf node \emph{b} with \emph{btr} in \emph{btree}.
+
+To allocate a block of size $s$ as described in Section~\ref{sec:buddy}, \textbf{alloc} firstly uses the predicate \emph{exists\_freelevel}, which takes the input set of \emph{BlockTree} $bset$  and the requested level  $\Delta_s$  as parameters. \emph{exists\_freelevel} checks whether there is a \emph{BlockTree} in \emph{bset} with free blocks in a level $l \leq \Delta_s$. If there is not, then the allocation process fails and returns original \emph{bset}. Otherwise, the function \emph{freesets\_ml} takes $bset$ and $\Delta_s$ to return the maximum level $lmax \leq \Delta_s$ in $bset$ containing free blocks. The allocation procedure then gets a \emph{BlockTree} $btree$ from $bset$ such that there are free blocks at level $lmax$ and it randomly picks up a \emph{FREE} Leaf node $le$ from $btree$ in the level $lmax$. From here there are two options. 
+
+(a) there is a \emph{BlockTree} with free nodes at the requested level. Hence $lmax$ is equal to the requested level $\Delta_s$ and blocks at level $lmax$ has the minimum size to allocate the requested amount of memory, and the splitting process is not necessary. The procedure simply sets the type of $le$ as \emph{ALLOC} in $btree$, using the functions \emph{set\_type} and \emph{replace\_btree}, to obtain a new \emph{BlockTree} $btree'$. After that, the allocation returns an updated $bset$ by replacing the previous $btree$ with $btree'$. Note that this execution branch does not add any additional nodes into the tree structure, and only modifies the type of a terminal node at level$\Delta_s$ .
+
+(b) there is not a \emph{BlockTree} with free nodes at the requested level, and hence $lmax$ is smaller to the requested level $\Delta_s$. During the allocation process, if there is not any free Leaf node available at the best fit level $\Delta_s$ for the requested size, but there exists a higher level $hl$ in the tree structure, hence $hl \leq \Delta_s$, with free blocks, it is necessary to start the splitting process from $hl$ down to $\Delta_s$. Fig.~\ref{fig:splitleaf} describes this process. Function \textbf{split} recursively divides $l - hl$ times a Leaf node \emph{b} into a Node tree \emph{btree}. It uses the function \textbf{divide} that takes a Leaf node \emph{b} and returns a new non-terminal Node tree \emph{n} with four terminal Leaf nodes. The division operation is always conducted on the leftmost subtree of $n$ marking it as allocated, while the rest are marked as \emph{FREE}. We define the \emph{split} operation as follows. Therefore, the allocation replaces $le$ in $btree$ with the resulting node of splitting $le$ as described, following the rest of the procedure as in the first case.
 
 \begin{definition} [Split a Leaf Node]
-\begin{align*}
-split\ b\ lv &\triangleq\ if\ lv = 0\ then\ b\ else\\
-Node\ &(split\ (LL\ divide\ b)\ (lv - 1))\ (LR\ divide\ b)\\ 
-&(RL\ divide\ b)\ (RR\ divide\ b)
-\end{align*}
+	\begin{align*}
+	split\ b\ lv &\triangleq\ if\ lv = 0\ then\ b\ else\\
+	Node\ &(split\ (LL\ divide\ b)\ (lv - 1))\ (LR\ divide\ b)\\ 
+	&(RL\ divide\ b)\ (RR\ divide\ b)
+	\end{align*}
 \end{definition}
 
-In addition, the allocation uses functions \textbf{set\_type}, \textbf{replace} and \textbf{replace\_leaf}. Function \emph{set\_type} takes a Leaf node \emph{b} and a target \emph{block\_state\_type} \emph{s} as inputs, and returns a leaf \emph{b'} resulting of changing the state of \emph{b} to \emph{s}. Function \emph{replace} takes a \emph{BlockTree} \emph{btree}, two Leaf nodes \emph{b} and \emph{b'} as inputs, and returns a tree replacing the Leaf node \emph{b} with \emph{b'} in \emph{btree}. Function \emph{replace\_leaf} takes a \emph{BlockTree} \emph{btree}, a Leaf node \emph{b} and a Node tree \emph{btr} as inputs, and returns the tree that replaces the Leaf node \emph{b} with \emph{btr} in \emph{btree}.
-
-To allocate a block of size $s$ as described in Section~\ref{sec:buddy}, \textbf{alloc} firstly uses the function \emph{exists\_freelevel} to check whether there is a \emph{BlockTree} in \emph{bset} with free blocks in a level $l \leq \emph{rlv}$. If there is not, then the allocation process fails and returns original \emph{bset}. Otherwise, the function \emph{freesets\_maxlevel} returns the maximum level $lmax$ with $lmax \leq rlv$ containing free blocks. From here there are two options. 
-
-(a) there is a \emph{BlockTree} with free nodes at the requested level (hence \emph{lmax} is equal to the requested level \emph{rlv}). In this case the allocation operation selects a \emph{BlockTree} \emph{btree} from $btree$ such that there are free blocks at level \emph{rlv}. After this, it randomly picks up a \emph{FREE} Leaf node \emph{l} in level \emph{rlv} from \emph{btree}, and obtains a new $btree'$ by modifying in $btree$ the type of \emph{l} as \emph{ALLOC} using the functions \emph{set\_type} and \emph{replace\_btree}. After that, the allocation returns an updated \emph{bset} by replacing the previous \emph{btree} with \emph{btree'}. Note that this execution branch do not adds any additional nodes into the tree structure, and only modifies the type of a terminal node at level \emph{rlv}.
-
-(b) there is not a \emph{BlockTree} with free nodes at the requested level (hence \emph{lmax} is smaller to the requested level \emph{rlv}). Since  \emph{lmax} is a lower level than \emph{rlv}, it means that free nodes have bigger size than what is requested. In that case it is necessary to modify the tree splitting a terminal Leaf node $l$ at level \emph{lmax} down to level \emph{rlv} to create a block fitting better the requested size. The allocation operation selects a \emph{BlockTree} \emph{btree} from $btree$ such that there are free blocks at level \emph{lmax}. Then it randomly selects picks up a \emph{FREE} Leaf node \emph{l} in level \emph{lmax} from \emph{btree} and splits \emph{l} into a Node tree \emph{btr} using the function \emph{split}. As explained above, \emph{split} \emph{``breaks"} the Leaf node \emph{l} into a new \emph{BlockTree} for which \emph{btr} is its root, and where there is block $b$ at depth $rlv - lmax$ from $btr$ that is allocated and its buddies are free. Function \textbf{alloc} then updates \emph{l} with \emph{btr} in \emph{btree} using \emph{replace\_leaf} obtaining \emph{btree'}, to finally update \emph{bset} by replacing the previous \emph{btree} with \emph{btree'}. Finally, the operation returns updated Block set and \emph{True}.
 
 Note that \textbf{alloc} modifies a free block into an allocated one, so the number of Leafs remain unmodified in the branch (a); or breaks a free block into a \emph{Node} tree to eventually create a number of free blocks and an allocated block as shown in Fig.~\ref{fig:splitleaf}. In both cases the rest of Leafs are from the original set do not change and there is a new allocated block that was not present. To obtain the block \textbf{alloc} allocates, it is only necessary to subtract the allocate nodes in the original set of free nodes from the allocate nodes in the resulting set.
 
-\begin{definition} [Allocation Operation]
-\begin{align*}
-&alloc\ bset\ rlv \triangleq \\
-&if\ exists\_freelevel\ bset\ rlv\ then \\
-&\ \ \ \ lmax = freesets\_maxlevel\ bset\ rlv \\
-&\ \ \ \ if\ lmax = rlv\ then \\
-&\ \ \ \ \ \ \ \ btree = SOME\ b.\ b \in bset\ \wedge\\
-&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ freesets\_level\ b\ rlv \ne \emptyset \\
-&\ \ \ \ \ \ \ \ l = SOME\ l.\ l \in freesets\_level\ btree\ rlv \\
-&\ \ \ \ \ \ \ \ btree' = replace\ btree\ l\ (set\_type\ l\ ALLOC) \\
-&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree' \rbrace,\ True) \\
-&\ \ \ \ else \\
-&\ \ \ \ \ \ \ \ btree = SOME\ b.\ b \in bset\ \wedge\\
-&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ freesets\_level\ b\ lmax \ne \emptyset \\
-&\ \ \ \ \ \ \ \ l = SOME\ l.\ l \in freesets\_level\ btree\ lmax \\
-&\ \ \ \ \ \ \ \ btr' = split\ l\ (rlv - lmax) \\
-&\ \ \ \ \ \ \ \ btree' = replace\_leaf\ btree\ l\ btr' \\
-&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree' \rbrace,\ True) \\
-&else\ return\ (bset,\ False)
-\end{align*}
-\end{definition}
-
 \subsection{Deallocation Model}
-The deallocation process takes a block $b$ in a level $l$, and sets the state of $b$ to \emph{FREE}. During the deallocation process, if the state of all the buddies of $b$ is already $free$ and $l$ is not the root node, the buddy nodes are merged to avoid fragmentation. In the merging process, $b'$ parent Node is transformed into a Leaf node at level $l - 1$ that is set as free, causing all the buddies to be removed from the quad-tree. Hence they are not at level $l$ anymore. The merging process is shown in Fig.~\ref{fig:merginfreeblocks}.
-
-\begin{figure*}[htbp]
-	\centering
-	\includegraphics[width=0.9\textwidth]{fig2.pdf}
-	\caption{The progress of merging all free memory blocks}
-	\label{fig:merginfreeblocks}
-\end{figure*}
-
-Function \textbf{free} takes as input a set of \emph{BlockTree} $bset$ and a block to dispose \emph{b}. It firstly checks whether there is a $btree \in bset$ for which \emph{b} belongs to and that its state is \emph{ALLOC}. If the conditions are not met, the procedure fails returning the original \emph{bset}. If they are, the procedure picks up the tree in \emph{bset} as \emph{btree} to which \emph{b} belongs to, which must be unique. After this, \emph{btree} is modified into \emph{btree'} where the type of \emph{b} is set to \emph{FREE} using the functions \emph{set\_type} and \emph{replace}. After that, the new tree is coalesced using the function \emph{merge} and \emph{bset} is updated replacing \emph{btree} with the new memory pool. The definition of deallocation operation is as follows.
 
 \begin{definition} [Deallocation Operation]
-\begin{align*}
-&free\ bset\ b \triangleq \\
-&if\ \exists btree \in bset.\ b \in set\ btree\ then \\
-&\ \ \ \ if\ fst\ b = FREE\ then \\
-&\ \ \ \ \ \ \ \ return\ (bset,\ False) \\
-&\ \ \ \ else \\
-&\ \ \ \ \ \ \ \ btree = THE\ t.\ t \in bset \wedge b \in set\ t \\
-&\ \ \ \ \ \ \ \ btree' = replace\ btree\ b\ (set\_type\ b\ FREE) \\
-&\ \ \ \ \ \ \ \ btree'' = merge\ btree' \\
-&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree'' \rbrace,\ True) \\
-&else\ return\ (bset,\ False)
-\end{align*}
+	\begin{align*}
+	&free\ bset\ b \triangleq \\
+	&if\ \exists btree \in bset.\ b \in set\ btree\ then \\
+	&\ \ \ \ if\ fst\ b = FREE\ then \\
+	&\ \ \ \ \ \ \ \ return\ (bset,\ False) \\
+	&\ \ \ \ else \\
+	&\ \ \ \ \ \ \ \ btree = THE\ t.\ t \in bset \wedge b \in set\ t \\
+	&\ \ \ \ \ \ \ \ btree' = replace\ btree\ b\ (set\_type\ b\ FREE) \\
+	&\ \ \ \ \ \ \ \ btree'' = merge\ btree' \\
+	&\ \ \ \ \ \ \ \ return\ (bset - \lbrace btree \rbrace \cup \lbrace btree'' \rbrace,\ True) \\
+	&else\ return\ (bset,\ False)
+	\end{align*}
 \end{definition}
+
+The deallocation process takes a block $b$ and a \emph{BlockTree} $btree$ and sets the state of $b$ to \emph{FREE}. During the deallocation process, if the state of all the buddies of $b$ is already $free$ and the level $l$ of $b$ is not the root node, the buddy nodes are merged to avoid fragmentation. The merging process is shown in Fig.~\ref{fig:merginfreeblocks}. During the merging process, $b$ and its buddies are removed, and the parent Node of $b$ is transformed into a Leaf node at level $l - 1$ that is set as free.
+
+
+
+Function \textbf{free} firstly checks whether there is a $btree \in bset$ for which $b$ belongs to and that its state is \emph{ALLOC}. If these conditions are not met, the procedure fails returning the original \emph{bset}. If they are, the procedure picks up the tree in \emph{bset} as \emph{btree}, which \emph{b} belongs to. Note that since leaves can only belong to a \emph{BlockTree}, $btree$ is unique.  After this, \emph{btree} is modified into \emph{btree'} where the type of \emph{b} is set to \emph{FREE} using the functions \emph{set\_type} and \emph{replace}. After that, the new tree is coalesced using the function \emph{merge} and \emph{bset} is updated replacing \emph{btree} with the new memory pool. The definition of deallocation operation is as follows.
+
+
 
 At this point, we have finished the specification of the allocation and disposal operations for a buddy memory allocator. The next section tackles the verification of functional and security properties over the model for the allocation and deallocation operations.
