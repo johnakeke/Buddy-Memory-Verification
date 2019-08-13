@@ -10,7 +10,7 @@
 \usepackage{latexsym}
 \usepackage{isabelle,isabellesym}
 \usepackage{soul}
-\usepackage{hyperref}
+%\usepackage{hyperref}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -82,7 +82,7 @@
 \maketitle
 
 \begin{abstract}
-Buddy memory allocation algorithms are widely adopted by various memory management systems for managing memory layouts. Rigorous mathematical proofs provide strong assurance to improve confidence on the reliability of a memory management system. In this paper, we offer a formally verified buddy memory allocation model, which preserves functional correctness and security properties. Firstly, we construct a specification consisting of operations to allocate and dispose memory blocks according to a buddy memory allocation algorithm. Then we verify that the specification preserves key invariants over the memory to guarantee functional correctness of the algorithm. Finally, we verify that the specification also preserves the integrity of the memory. Therefore, they do not affect other memory blocks previously allocated. Our work is done in interactive theorem prover Isabelle/HOL.
+Buddy memory allocation algorithms are widely adopted by various memory management systems for managing memory layouts. Rigorous mathematical proofs provide strong assurance to improve the confidence on the reliability of a memory management system. In this paper, we model and formally verify a buddy memory allocation model, which preserves functional correctness and security properties. Firstly, we construct a specification consisting of operations to allocate and dispose memory blocks according to a buddy memory allocation algorithm. Then we verify that the specification preserves key invariants over the memory to guarantee functional correctness of the algorithm. Finally, we verify that the specification also preserves the integrity of the memory. Therefore, they do not affect other memory blocks previously allocated. Our work is done in the interactive theorem prover Isabelle/HOL.
 \end{abstract}
 
 \begin{IEEEkeywords}

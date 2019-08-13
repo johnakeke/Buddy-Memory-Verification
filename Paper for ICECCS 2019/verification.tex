@@ -1,5 +1,5 @@
 \section{Verification}
-In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}. All the lemmas and theorems present in this section have been proven in the Isabelle/HOL theorem prover. We omit the proofs due to lack of space, but the interested reader can access the mechanize proofs in the project website.
+In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}. All the lemmas and theorems present in this section have been proven in the Isabelle/HOL theorem prover. We omit the proofs due to lack of space, but the interested reader can access the mechanize proofs on the project website.
 
 \subsection{Functional correctness}\label{sec:functional}
 We first formulate and prove the desired properties for the allocation and deallocation services with regards to preservation of the memory layouts. Note that models for \textbf{alloc} and \textbf{free} return a tuple $(BlockTree \times Bool)$, where the first element is the new memory layouts, and the second one indicates the success or failure of the function. For simplicity on the presentation of the lemmas we consider that the models only return the new state of the memory layouts.
@@ -16,7 +16,7 @@ We first show that the allocation service does not change the state when none of
 
 As described in Section~\ref{sec:buddy} to allocate a memory block of size $s$, there must be a free block at a level higher or equal than $\Delta_s$. So under the assumption that there does not exist such a block, the allocation procedure leaves the state unchanged.
 
-Then we show in lemma~\ref{lemma:alloc_alloc} that if there is a memory pool with a block big enough to allocate the requested size $s$, then \textbf{alloc} keeps constant the set of allocated block at any level different from $\Delta_s$ (1), and adds the allocated block at level $\Delta_s$ (2). That is, the allocated blocks at level $\Delta_s$ after the allocation contains a new block that did not belong to level $\Delta_s$ before the allocation, whereas the rest of allocated blocks at level $\Delta_s$ do not change.
+Then we show in Lemma~\ref{lemma:alloc_alloc} that if there is a memory pool with a block big enough to allocate the requested size $s$, then \textbf{alloc} keeps constant the set of allocated block at any level different from $\Delta_s$ (1), and adds the allocated block at level $\Delta_s$ (2). That is, the allocated blocks at level $\Delta_s$ after the allocation contains a new block that did not belong to level $\Delta_s$ before the allocation, whereas the rest of allocated blocks at level $\Delta_s$ do not change.
 
 \begin{lemma} [Allocsets for Allocation]
 \label{lemma:alloc_alloc}
@@ -62,7 +62,7 @@ Lemma~\ref{lemma:free_indirectalloc} is more interesting when $\Delta_s$ does no
 \end{align*}
 
 \subsubsection{Deallocation}\label{sec:functionalDealloc}
-For deallocation, we first show in lemmas~\ref{lemma:deallocate_fail1} and~\ref{lemma:deallocate_fail2} that the deallocation service indeed does not change the memory layouts when the block to deallocate does not belong to any memory pool in the memory layouts, or when it exists but it has not been allocated.
+For deallocation, we first show in Lemma~\ref{lemma:deallocate_fail1} and Lemma~\ref{lemma:deallocate_fail2} that the deallocation service indeed does not change the memory layouts when the block to deallocate does not belong to any memory pool in the memory layouts, or when it exists but it has not been allocated.
 
 \begin{lemma} [Deallocation Failure 1]
 \label{lemma:deallocate_fail1}
@@ -94,7 +94,7 @@ Then we show in Lemma~\ref{lemma:alloc_deallocation} that the deallocation proce
 \end{align*}
 \vspace{-12pt}
 
-With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. In this case, we need to ensure that there is a level $lvl$ for which all the free blocks before the deallocation are also free, and it contains an additional block $b'$ that did not belong to the free blocks of that level before deallocation (1). Note that $lvl$ has to be (a) smaller,i.e., it is a higher level as result of merging, or (b) equal than $l_b$, i.e., there was no merging.
+With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. In this case, we need to ensure that there is a level $lvl$ for which all the free blocks before the deallocation are also free, and it contains an additional block $b'$ that did not belong to the free blocks of that level before deallocation (1). Note that $lvl$ has to be (a) smaller, i.e., it is a higher level as result of merging, or (b) equal than $l_b$, i.e., there was no merging.
 
 For (a), then we show (a.1) that for any level smaller than $lvl$ or bigger than $l_b$ the set of free blocks does not change. Since the merge process goes from $l_b$ up to $lvl$ and  $lvl$ is the level in which we have the new free block, then we can deduce that $lvl$ is the first level in which all the buddies are not \emph{FREE} and hence they are not merged. In (a.2) we show that the merging process has removed the buddies of $b$ and subsequently nodes at any level between $lvl$ and $l_b$, i.e., the set of free blocks for any level between $lvl$ and $l_b$ after deallocation is a subset of the set of free blocks before deallocation. Note that the number of removed blocks is exactly 3 per level. At level $l_b$, $b$ was allocated, so it did not belong to the set of free blocks before deallocation, only its 3 buddies belonged to that set. At any level higher than $l_b$ up to $lvl$ there were 3 free blocks together with the logical block split into lower levels.
 
@@ -132,7 +132,7 @@ is\_FFL\ btree \triangleq\ &\forall chtree \in child\ btree.\ leaf\ chtree\ \wed
 \end{align*}
 \vspace{-12pt}
 
-Operating systems initialize the whole memory into a series of free blocks, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initial state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{lemma:allocffl} and~\ref{lemma:deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter whether the operating system performs an allocation or a deallocation operation. Therefore, we ensure that the whole memory system preserves this property. Furthermore, it shows that the buddy allocation specification reduces the fragmentation by means of the merge operation, since it make available to applications blocks with a bigger size than what it was initially disposed.
+Operating systems initialize the whole memory into a series of free blocks, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initial state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{lemma:allocffl} and Lemma~\ref{lemma:deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter whether the operating system performs an allocation or a deallocation operation. Therefore, we ensure that the whole memory system preserves this property. Furthermore, it shows that the buddy allocation specification reduces the fragmentation by means of the merge operation, since it make available to applications blocks with a bigger size than what it was initially disposed.
 
 \begin{lemma} [Non-existence of FFL during Allocation]
 \label{lemma:allocffl}
@@ -166,7 +166,7 @@ is\_&different\ bs \triangleq\\
 \end{align*}
 \vspace{-12pt}
 
-Lemmas~\ref{lemma:id_alloc} and~\ref{lemma:id_dealloc} shows that uniqueness of IDs is an invariant to the allocation and deallocation procedures.
+Lemma~\ref{lemma:id_alloc} and Lemma~\ref{lemma:id_dealloc} show that uniqueness of IDs is an invariant to the allocation and deallocation procedures.
 
 \begin{lemma} [Different IDs during Allocation] \label{lemma:id_alloc}
 \begin{align*}
@@ -273,7 +273,7 @@ The events $\mathcal{E}$ in the security model is a set composed of allocation, 
 \end{align*}
 \vspace{-12pt}
 
-Where $\mathcal{MS}\ \Sigma$, $\xi\ \Sigma$, and $\mathcal{A}\ \Sigma$ are respectively the projections of $\mathcal{MS},\ \xi,\ \mathcal{A}$ in $\Sigma$. The notation $f[i:=v]$ sets the image of $i$ to $v$ in $f$, and for any $j\neq i$, $f\ j = f[i:=v]\ j$. Function \textbf{allocid} returns the \emph{ID} of the block allocated or freed by allocation and deallocation events.
+Where $\mathcal{MS}\ \Sigma$, $\xi\ \Sigma$, and $\mathcal{A}\ \Sigma$ are respectively the projections of $\mathcal{MS},\ \xi,\ \mathcal{A}$ in $\Sigma$. The notation $f[i:=v]$ sets the image of $i$ to $v$ in $f$, and for any $j\neq i$, $f\ j = f[i:=v]\ j$. The function \textbf{allocid} returns the \emph{ID} of the block allocated or freed by allocation and deallocation events.
 
 Seeking integrity of the memory between domains, two different execution domains cannot interfere each with the other. On the other hand, since the scheduler $\mathbb{S}$ changes the current execution domain, it is necessary to set that it can interfere with any domain. We instantiate the interference relation as:
 
