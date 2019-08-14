@@ -1,29 +1,31 @@
-\section{Background}
-In this section, we give necessary backgrounds for the buddy memory allocation algorithms and the Isabelle/HOL theorem prover.
-
-\subsection{Buddy Allocation Algorithms}\label{sec:buddy}
-The buddy allocation algorithms aim to minimize external fragmentation by partitioning the memory into blocks fitting as best as possible memory requests from applications. Starting from an initial block with capacity equal to the maximum available memory $\Omega$, blocks are split into a power-of-two number of blocks $\Gamma$ to ease address computation. Each of the split blocks are buddies of each other and will be coalesced into a single block whenever it is possible when disposing an allocated block.
-
-This mechanism logically organizes the memory into levels, where each level $l$ hosts $\Gamma^l$ blocks of equal size $\Omega/{\Gamma}^l$. Assuming the maximum memory $\Omega$ is a constant, it is easy to show that the level containing blocks with the necessary capacity to satisfy a memory request of size $s$ is $\Delta_s \equiv \lceil log_\Gamma (\Omega / s) \rceil$ where $\lceil n \rceil$ is the upper natural number of $n$.
-
-For efficiency when accessing the free available blocks of a given allocation request, implementations use a multilevel linked-list to manage the free blocks on a given level. Under an allocation request of size $s$, if the linked list for the level $\Delta_s$ is not empty, a block is directly picked from the head of list. If it is empty the mechanism will try to find a higher level with free blocks and the splitting process starts to generate a perfect fit for the requested size. 
-
-When a block is deallocated, the algorithms check whether the block can be merged with its buddy blocks. Together with the list of free nodes of a level, the implementations keep a bitmap with the allocation state of the nodes of a level for quickly coalescing of free buddy nodes. Otherwise the coalescing algorithm would need to traverse the free node list of the level the coalesce is happening at to check that all the buddies blocks are in the list. On levels with a large number of free nodes using a bitmap can significantly increase the performance of the algorithm.
-
-In this work, we provide a specification for the buddy allocator implemented in Zephyr, which uses quad-trees so $\Gamma = 4$. Fig.~\ref{fig3} represents the memory system using the multilevel free linked-list and the multilevel free bitmap with $\Gamma = 2$ to ease the representation. It is composed of three memory blocks at level 0 numerated from 0 to 2. Only the block 0 has allocated memory requests, and hence the multilevel free linked-list on level 0 only contains blocks 1 and 2. Allocated nodes 3 and 4 at level 1, and node 7 at level 2 are logical nodes, that is they do not represent physical addresses. Leaves at nodes 5, 6, 8, 9, and 10 do represent physical nodes that have been, or can be, allocated.
-
-\begin{figure*}[htbp]
+\begin{figure*}[h]
 	\centering
 	\includegraphics[width=0.8\textwidth]{fig3.pdf}
 	\caption{Structures in Buddy Allocation Algorithms}
 	\label{fig3}
-\end{figure*}
+\end{figure*} 
+\section{Background}
+In this section, we give the backgrounds on the buddy memory allocation algorithms and the Isabelle/HOL theorem prover.
+
+
+\subsection{Buddy Allocation Algorithms}\label{sec:buddy}
+Buddy allocation algorithms aim to minimize external fragmentation by partitioning the memory into blocks fitting as best as possible memory requests from applications. Starting from an initial block with capacity equal to the maximum available memory $\Omega$, blocks are split into a number of blocks $\Gamma$. To ease address computation, $\Gamma$ is a power of two. Each of the split blocks are buddies of each other and will be coalesced into a single block whenever it is possible when disposing an allocated block.
+
+This mechanism logically organizes the memory into levels, where each level $l$ hosts $\Gamma^l$ blocks of equal size $\Omega/{\Gamma}^l$. Assuming the maximum memory $\Omega$ is a constant, it is easy to show that the level containing blocks with the necessary capacity to satisfy a memory request of size $s$ is $\Delta_s \equiv \lceil log_\Gamma (\Omega / s) \rceil$ where $\lceil n \rceil$ is the upper natural number of $n$.
+
+For efficiency when accessing the free available blocks of a given allocation request, implementations use a multilevel linked-list to manage the free blocks on a given level. Under an allocation request of size $s$, if the linked list for the level $\Delta_s$ is not empty, a block is picked directly from the head of the linked list list. If it is empty the mechanism will try to find a higher level with free blocks and the splitting process starts to generate a perfect fit for the requested size. 
+
+When a block is deallocated, the algorithms check whether the block can be merged with its buddy blocks. Together with the list of free nodes of a level, implementations keep a bitmap with the allocation state of the nodes of a level for quickly coalescing of free buddy nodes. Otherwise the coalescing algorithm would need to traverse the free node list of the level the coalesce is happening at to check that all the buddies blocks are in the list. On levels with a large number of free nodes using a bitmap can significantly increase the performance of the algorithm.
+
+In this work, we provide a specification for the buddy allocator using quad-trees ($\Gamma = 4$), following the Zephyr implementation. Fig.~\ref{fig3} shows a representation of the buddy memory management. To ease the presentation, the split factor $\Gamma$ is equal to 2. It is composed of three memory blocks at level 0 numerated from 0 to 2. Only the block 0 has allocated memory requests, and hence the multilevel free linked-list on level 0 only contains blocks 1 and 2. Allocated nodes 3 and 4 at level 1, and node 7 at level 2 are logical nodes, that is they do not represent physical addresses. Leaves at nodes 5, 6, 8, 9, and 10 do represent physical nodes that have been, or can be, allocated.
+
+
 
 \subsection{Isabelle/HOL}
 We use the Isabelle/HOL interactive theorem prover~\cite{reg_Isabelle/HOL} to conduct the specification and verification of the memory management. Isabelle/HOL is a higher order logic theorem prover, using a typed lambda calculus-like functional language for specifications.
 
-Isabelle/HOL includes a specification for simple common types such as naturals (\emph{nat}), integers (\emph{int}) and booleans (\emph{bool}). It also specifies some composed data types like tuples, records, lists and sets that are parametrized with other types. Isabelle provides the interface \emph{datatype} for the creation of user defined types based on type constructors.
+Isabelle/HOL includes a specification for simple common types such as naturals (\emph{nat}), integers (\emph{int}) and booleans (\emph{bool}). It also specifies some composed data types like tuples, records, lists and sets that are parametrized with other types. Users can define types based on type constructors using the interface \emph{datatype}.
 
-Isabelle provides functions on predefined types to access their members or to provide additional operations over them. In the following we describe those functions and types that we use along this work. A tuple is denoted as (\emph{$t_1$} $\times$ \emph{$t_2$}), projection functions \emph{fst} and \emph{snd} respectively return elements $t_1$ and $t_2$. Lists are defined as a datatype with an empty construct denoted with \emph{NIL} or $[]$, and a concatenation construct denoted with $\#$, where $x\#xs$ adds $x$ to the front of $xs$. The $i$th component of a list $as$ is written as $as!i$. Isabelle/HOL provides functions for definite and indefinite descriptions. Definitive description is represented by $THE\ x.\ P\ x$ and returns the element uniquely described by the predicate $P$, else it returns and undefined value. Indefinite description is represented by $SOME\ x.\, P\ x$, selecting a random element from the predicate $P$ that must describe at least one element, else it returns an arbitrary value. The function $Card\ s$, denoted as $|s|$, returns the cardinality of the set $s$ when $s$ is finite, or $0$ when $s$ is infinite.
+Isabelle provides functions on predefined types to access their members or to provide additional operations over them. In the following we describe those functions and types that we use along this work. A tuple is denoted as (\emph{$t_1$} $\times$ \emph{$t_2$}), projection functions \emph{fst} and \emph{snd} respectively return elements $t_1$ and $t_2$. Lists are defined as a datatype with an empty construct denoted with \emph{NIL} or $[]$, and a concatenation construct denoted with $\#$, where $x\#xs$ adds $x$ to the front of $xs$. The $i$th component of a list $as$ is written as $as!i$. Isabelle/HOL provides functions for definite and indefinite descriptions. The definitive description is represented by $THE\ x.\ P\ x$ and returns the element uniquely described by the predicate $P$, if there is not such an element it returns an undefined value. The indefinite description is represented by $SOME\ x.\, P\ x$, selecting a random element from the predicate $P$. If there is not any element satisfying $P$ it returns an arbitrary value. The function $Card\ s$, denoted as $|s|$, returns the cardinality of the set $s$ when $s$ is finite, or $0$ when $s$ is infinite.
 
 Isabelle/HOL allows users to create non-recursive specifications using the command \emph{definition}, and to create recursive specifications using commands \emph{primrec} and \emph{recursive}.

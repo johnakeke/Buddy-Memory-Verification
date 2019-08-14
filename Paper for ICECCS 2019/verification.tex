@@ -1,8 +1,8 @@
 \section{Verification}
-In this section we will show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness in Section~\ref{sec:functional}. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}. All the lemmas and theorems present in this section have been proven in the Isabelle/HOL theorem prover. We omit the proofs due to lack of space, but the interested reader can access the mechanize proofs on the project website.
+In Section~\ref{sec:functional} we show that the formal specification introduced in the previous section preserves a set of properties guaranteeing its functional correctness. As a security property, we also prove that the specification preserves integrity of the memory structures in Section~\ref{sec:securitymodel} and Section~\ref{sec:securityproof}. All the lemmas and theorems have been proven in the Isabelle/HOL theorem prover. We omit the proofs due to lack of space, but the interested reader can access the mechanize proofs on the project website.
 
 \subsection{Functional correctness}\label{sec:functional}
-We first formulate and prove the desired properties for the allocation and deallocation services with regards to preservation of the memory layouts. Note that models for \textbf{alloc} and \textbf{free} return a tuple $(BlockTree \times Bool)$, where the first element is the new memory layouts, and the second one indicates the success or failure of the function. For simplicity on the presentation of the lemmas we consider that the models only return the new state of the memory layouts.
+We first formulate and prove the desired properties for the allocation and deallocation services with regards to the preservation of the memory layout. Note that models for \textbf{alloc} and \textbf{free} return a tuple $(BlockTree \times Bool)$, where the first element is the new memory layout, and the second one indicates the success or failure of the function. For simplicity on the presentation of the lemmas we consider that the models only return the new state of the memory layout.
 
 \subsubsection{Allocation}\label{sec:functionalalloc}
 We first show that the allocation service does not change the state when none of the memory pools in a set $bs$ have any free block big enough to allocate a request of size $s$. 
@@ -29,7 +29,7 @@ Then we show in Lemma~\ref{lemma:alloc_alloc} that if there is a memory pool wit
 \end{align*}
 \end{lemma}
 
-With regards to free blocks, for better presentation we split verification into two lemmas. Lemma~\ref{lemma:free_directalloc} for direct allocation, i.e., the case in which level $\Delta_s$ has free blocks and there is no split, and Lemma~\ref{lemma:free_indirectalloc} for indirect allocation in which $\Delta_s$ has no free blocks, but rather a higher level $lm$. In Lemma~\ref{lemma:free_directalloc}, if there is a memory pool with a block with the minimum necessary size to allocate the requested size $s$, therefore located at level $\Delta_s$, then for any level $l$ different from $\Delta_s$, the set of free blocks at $l$ does not change after the allocation. And \textbf{alloc} removes the block being allocated from the free blocks at level $\Delta_s$. That is, there exists a block $le$ that belongs to the free blocks at level $\Delta_s$ before the allocation but it does not belong to the free blocks after the allocation, whereas the rest of free blocks at level $\Delta_s$ do not change.
+With regards to free blocks, fwe split verification into two lemmas for a better presentation. Lemma~\ref{lemma:free_directalloc} is used for direct allocation, i.e., the case in which level $\Delta_s$ has free blocks and there is no split, and Lemma~\ref{lemma:free_indirectalloc} for indirect allocation in which $\Delta_s$ has no free blocks, but rather a higher level $lm$. In Lemma~\ref{lemma:free_directalloc}, if there is a memory pool with a block with the minimum necessary size to allocate the requested size $s$, therefore located at level $\Delta_s$, then for any level $l$ different from $\Delta_s$, the set of free blocks at $l$ does not change after the allocation. And \textbf{alloc} removes the block being allocated from the free blocks at level $\Delta_s$. That is, there exists a block $le$ that belongs to the free blocks at level $\Delta_s$ before the allocation but it does not belong to the free blocks after the allocation, whereas the rest of free blocks at level $\Delta_s$ do not change.
 
 \begin{lemma} [Freesets for Direct Allocation]
 \label{lemma:free_directalloc}
@@ -38,12 +38,12 @@ With regards to free blocks, for better presentation we split verification into 
 &freesets\_ml\ bs\ \Delta_s = \Delta_s \longrightarrow\\
 &\forall l \ne \Delta_s.\ free\_lvl\ (alloc\ bs\ \Delta_s)\ l =  free\_lvl\ bs\ l\ \wedge\\
 &\exists le.\ le \in free\_lvl\ bs\ \Delta_s\ \wedge\\
-&\ \ \ \ \ le \notin free\_lvl\ (alloc\ bs\ \Delta_s)\ \Delta_s\ \wedge\\
-&\ \ \ \ \ free\_lvl\ bs\ \Delta_s =  free\_lvl\ (alloc\ bs\ \Delta_s)\ \Delta_s \cup \lbrace le \rbrace
+&\ \ \ le \notin free\_lvl\ (alloc\ bs\ \Delta_s)\ \Delta_s\ \wedge\\
+&\ \ \ free\_lvl\ bs\ \Delta_s =  free\_lvl\ (alloc\ bs\ \Delta_s)\ \Delta_s \cup \lbrace le \rbrace
 \end{align*}
 \end{lemma}
 
-Lemma~\ref{lemma:free_indirectalloc} is more interesting when $\Delta_s$ does not have free blocks. In this case, a free block in a level $lm < \Delta_s$ is split till the level $\Delta_s$, as consequence we have that: (1) the set of free blocks at any level $l$ higher than $lm$ or lower than $\Delta_s$ does not change; (2) for any level $l$ between $lm$ and $\Delta_s$ the number of free blocks at $l$ after the allocation is exactly $3$; and (3) the allocated block is removed from the free blocks after the allocation. Note that in the second case, according to the function \textbf{freesets\_ml}, $lm$ is the lower level containing free blocks with a size bigger than $s$, therefore the set of free blocks at any level $l$ between $lm$ and $\Delta_s$ is empty before the allocation, and the allocation introduces three free leaves at each level as result of the split.
+Lemma~\ref{lemma:free_indirectalloc} is more interesting, where $\Delta_s$ does not have free blocks. In this case, a free block in a level $lm < \Delta_s$ is split till the level $\Delta_s$, as consequence we have that: (1) the set of free blocks at any level $l$ higher than $lm$ or lower than $\Delta_s$ does not change; (2) for any level $l$ between $lm$ and $\Delta_s$ the number of free blocks at $l$ after the allocation is exactly $3$; and (3) the allocated block is removed from the free blocks after the allocation. Note that in the second case, according to the function \textbf{freesets\_ml}, $lm$ is the lower level containing free blocks with a size bigger than $s$, therefore the set of free blocks at any level $l$ between $lm$ and $\Delta_s$ is empty before the allocation, and the allocation introduces three free leaves at each level as result of the split.
  
 \begin{lemma} [Freesets for Indirect Allocation]
 \label{lemma:free_indirectalloc}
@@ -62,7 +62,7 @@ Lemma~\ref{lemma:free_indirectalloc} is more interesting when $\Delta_s$ does no
 \end{align*}
 
 \subsubsection{Deallocation}\label{sec:functionalDealloc}
-For deallocation, we first show in Lemma~\ref{lemma:deallocate_fail1} and Lemma~\ref{lemma:deallocate_fail2} that the deallocation service indeed does not change the memory layouts when the block to deallocate does not belong to any memory pool in the memory layouts, or when it exists but it has not been allocated.
+For deallocation, we first show in Lemma~\ref{lemma:deallocate_fail1} and Lemma~\ref{lemma:deallocate_fail2} that the deallocation service indeed does not change the memory layout when the block to deallocate does not belong to any memory pool in the memory layout, or when it exists but it has not been allocated.
 
 \begin{lemma} [Deallocation Failure 1]
 \label{lemma:deallocate_fail1}
@@ -94,11 +94,11 @@ Then we show in Lemma~\ref{lemma:alloc_deallocation} that the deallocation proce
 \end{align*}
 \vspace{-12pt}
 
-With regards to free blocks, the deallocation process may remove free memory blocks during the coercing procedure. In this case, we need to ensure that there is a level $lvl$ for which all the free blocks before the deallocation are also free, and it contains an additional block $b'$ that did not belong to the free blocks of that level before deallocation (1). Note that $lvl$ has to be (a) smaller, i.e., it is a higher level as result of merging, or (b) equal than $l_b$, i.e., there was no merging.
+The deallocation process may remove free memory blocks during the coercing procedure. In this case, we need to ensure that there is a level $lvl$ for which all the free blocks before the deallocation are also free, and it contains an additional block $b'$ that did not belong to the free blocks of that level before disposing the block (1). Note that $lvl$ has to be (a) smaller than $l_b$, i.e., it is a higher level as result of merging, or (b) equal than $l_b$, i.e., there was no merging.
 
-For (a), then we show (a.1) that for any level smaller than $lvl$ or bigger than $l_b$ the set of free blocks does not change. Since the merge process goes from $l_b$ up to $lvl$ and  $lvl$ is the level in which we have the new free block, then we can deduce that $lvl$ is the first level in which all the buddies are not \emph{FREE} and hence they are not merged. In (a.2) we show that the merging process has removed the buddies of $b$ and subsequently nodes at any level between $lvl$ and $l_b$, i.e., the set of free blocks for any level between $lvl$ and $l_b$ after deallocation is a subset of the set of free blocks before deallocation. Note that the number of removed blocks is exactly 3 per level. At level $l_b$, $b$ was allocated, so it did not belong to the set of free blocks before deallocation, only its 3 buddies belonged to that set. At any level higher than $l_b$ up to $lvl$ there were 3 free blocks together with the logical block split into lower levels.
+For (a), we show (a.1) that for any level smaller than $lvl$ or bigger than $l_b$ the set of free blocks does not change. Since the merge process goes from $l_b$ up to $lvl$ and  $lvl$ is the level in which we have the new free block, then we can deduce that $lvl$ is the first level in which all the buddies are not \emph{FREE} and hence they are not merged. In (a.2) we show that the merging process has removed the buddies of $b$ and subsequently nodes at any level between $lvl$ and $l_b$, i.e., the set of free blocks for any level between $lvl$ and $l_b$ after deallocation is a subset of the set of free blocks before deallocation. Note that the number of removed blocks is exactly 3 per level. At level $l_b$, $b$ was allocated, so it did not belong to the set of free blocks before deallocation, only its 3 buddies belonged to that set. At any level higher than $l_b$ up to $lvl$ there were 3 free blocks together with the logical block split into lower levels.
 
-For (b), where there was no merging, it is enough to show that for any level $l$ different from $l_b$ the set of free blocks at $l$ remains the same. Lemma~\ref{lemma:free_deallocation} expresses these conditions.
+For (b), there is no merging of blocks and only blocks at level $l_b$ have been modified. In this case, it is enough to show that for any level $l$ different from $l_b$ the set of free blocks at $l$ remains the same. Lemma~\ref{lemma:free_deallocation} expresses these conditions.
 
 \begin{lemma} [Freesets for Deallocation]
 \label{lemma:free_deallocation}
@@ -106,10 +106,10 @@ For (b), where there was no merging, it is enough to show that for any level $l$
 \begin{align*}
 &\exists bt \in bs.\ b \in set\ bt \wedge fst\ b \neq FREE\ \wedge\\
 &\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ level\ bt\ b = l_b \longrightarrow\\
-&\ \ (1)\exists lvl\ b'.\ b' \notin free\_lvl\ bs\ lvl\ \wedge  \\
+&(1)\exists lvl\ b'.\ b' \notin free\_lvl\ bs\ lvl\ \wedge  \\
 &\ \ \ \ \ \ \ b' \in free\_lvl\ (free\ bs\ b)\ lvl\ \wedge\\
 &\ \ \ \ \ \ \ free\_lvl\ (free\ bs\ b)\ lvl = free\_lvl\ bs\ lvl \cup \lbrace b' \rbrace\ \wedge \\
-& \ \ \ \ (a)(lvl < l_b \longrightarrow \\
+& \ \ \ \ (a)(lvl < l_b \longrightarrow\\
 &\ \ \ \ \ \ (a.1)\forall l < lvl \vee l > l_b.\ \\ 
 &\ \ \ \ \ \ \ \ \ \ \ \ \ free\_lvl\ (free\ bs\ b)\ l = free\_lvl\ bs\ l\ \wedge\\
 &\ \ \ \ \ \ (a.2)\forall l > lvl \wedge l \le l_b. \\
@@ -119,8 +119,9 @@ For (b), where there was no merging, it is enough to show that for any level $l$
 &\ \ \ \ \ \ \forall l \ne l_b.\ free\_lvl\ (free\ bs\ b)\ l = free\_lvl\ bs\ l)
 \end{align*}
 
+
 \subsubsection{Correct Merging}
-The buddy memory allocation algorithm may reduce the fragmentation by invoking the merge function during the process of deallocation to merge buddy blocks that are free, as shown in Fig.~\ref{fig:merginfreeblocks}. Previous lemmas do not show that the merging procedure is correct, so we show here that the merging process is correctly carried out. This can be reduced to show that the memory layouts preserve an invariant saying that not all the buddy memory blocks are free. To achieve this, we first define the notion of all free buddy memory block using the definition below, where function \textbf{child} gives us a set of all immediate child nodes of a \emph{Tree} and \textbf{leaf} is a predicate checking whether a node is terminal or not:
+The buddy memory allocation algorithm may reduce the fragmentation by invoking the merge function during the process of deallocation to merge buddy blocks that are free, as shown in Fig.~\ref{fig:merginfreeblocks}. Previous lemmas do not show that the merging procedure is correct, so we show here its correctness. This is reduced to show that the memory layout preserves an invariant stating that buddy memory blocks are not all free. To achieve this, we first define the notion of all free buddy memory block, where function \textbf{child} gives us a set of all immediate child nodes of a \emph{Tree} and \textbf{leaf} is a predicate checking whether a node is terminal or not:
 
 \begin{definition} [Four Free Leaves Belong to the Same Node]
 \label{def:FF4}
@@ -132,7 +133,7 @@ is\_FFL\ btree \triangleq\ &\forall chtree \in child\ btree.\ leaf\ chtree\ \wed
 \end{align*}
 \vspace{-12pt}
 
-Operating systems initialize the whole memory into a series of free blocks, and these memory blocks are in the form of root nodes which are not split at the very beginning. This initial state satisfies not-existence of \emph{FFL} trees. Then according to Lemma~\ref{lemma:allocffl} and Lemma~\ref{lemma:deallocffl}, any state after initialization satisfies non-existence of \emph{FFL} trees no matter whether the operating system performs an allocation or a deallocation operation. Therefore, we ensure that the whole memory system preserves this property. Furthermore, it shows that the buddy allocation specification reduces the fragmentation by means of the merge operation, since it make available to applications blocks with a bigger size than what it was initially disposed.
+The initial state of the memory is a series of free blocks, i.e., root nodes which are not split, satisfying the not-existence of \emph{FFL} trees Lemmas~\ref{lemma:allocffl} and~\ref{lemma:deallocffl} show that the allocation and free operations also satisfy the non-existence of \emph{FFL} trees. Therefore, any reachable memory layout from the initial state satisfy the property. Furthermore, it shows that the buddy allocation specification reduces the fragmentation by means of the merge operation, since it makes available to applications blocks with a smaller size than what it was initially disposed.
 
 \begin{lemma} [Non-existence of FFL during Allocation]
 \label{lemma:allocffl}
@@ -151,9 +152,9 @@ Operating systems initialize the whole memory into a series of free blocks, and 
 \end{lemma}
 
 \subsubsection{Memory Isolation}
-Memory isolation ensures non-overlapping of the allocated address space. In Section~\ref{statedes} we show that the memory model uses a natural number as a block identifier \emph{ID}. The \emph{ID} helps us to uniquely identify each physical memory block in a memory pool.
+Memory isolation ensures non-overlapping of the allocated address space. In Section~\ref{statedes} we show that the memory model uses a natural number as a block identifier \emph{ID}. The \emph{ID} uniquely identify each physical memory block in a memory pool.
 
-Definition~\ref{def:dif} introduces a judgment stating that \emph{Leaf} nodes in a set of memory pools all have different \emph{ID}. This definition checks that for any memory pool $b$ in the memory layouts $bs$, and any memory block $l$ in $b$, i.e. a terminal node of $b$, there is not any other $l'$, different than $l$, and other memory pool $b'$ in $bs$ where the \emph{ID} of $l$ is equal to the \emph{ID} of $l'$.
+Definition~\ref{def:dif} introduces a predicate stating that all the \emph{Leaf} nodes in a set of memory pools have a different \emph{ID}. This definition checks that for any memory pool $b$ in the memory layout $bs$, and any memory block $l$ in $b$, i.e. a terminal node of $b$, there is not any other $l'$, different than $l$, and other memory pool $b'$ in $bs$ where the \emph{ID} of $l$ is equal to the \emph{ID} of $l'$.
 
 \begin{definition} [Different IDs]
 \label{def:dif}
@@ -182,7 +183,7 @@ is\_different\ &bs \longrightarrow is\_different\ (free\ bs\ b)
 
 Considering that a block ID allows us to uniquely identify a memory block, the lemma on uniqueness of blocks and Lemma~\ref{lemma:alloc_alloc} allows to infer non-overlapping of allocation of memory blocks. That is, that two different allocations do not assign the same memory block.
 
-Note that although our level of abstraction does not consider memory addresses, it would be easy to refine this model to include memory addresses and identify the domain of addresses of a memory block as a function in terms of the location of the memory block in the tree.
+Note that although our level of abstraction does not consider memory addresses, it would be easy to refine this model to include memory addresses, identifying the domain of addresses of a memory block as a function in terms of the location of the memory block in the tree.
 
 \subsection{A Security Model}\label{sec:securitymodel}
 Integrity is the assurance that information is trustworthy and accurate. To achieve this, data must not be changed in transit. In this subsection, we prove integrity of the data allocated by a buddy allocation specification. For this purpose, we follow the work from~\cite{reg_securitymodel} to firstly design a security model, which consists of a nondeterministic state machine, and then to specify the integrity property and prove that it is an invariant on the memory allocator.
@@ -190,7 +191,7 @@ Integrity is the assurance that information is trustworthy and accurate. To achi
 \subsubsection{Memory State Machine}
 We define a memory state machine as tuple $\mathcal{M} = \langle \mathcal{S}, \mathcal{E}, \varphi, s_0 \rangle$. $\mathcal{S}$ represents the state space,  $s_0 \in \mathcal{S}$ is the initial machine state, and $\mathcal{E}$ is the set of event labels. The state-transition function is characterized by $\varphi$, of type $\varphi: \mathcal{E} \rightarrow \mathbb{P}(\mathcal{S} \times \mathcal{S})$, where $\mathbb{P}(n)$ is the powerset of the set $n$.
 
-Based on the state machine above, we introduce some auxiliary functions: function \textbf{execution(s, es)} takes a state \emph{s} and a sequence of events \emph{es}, and then returns the set of final states; function \textbf{reachable(s)} (denoted as $\mathcal{R}(s)$) checks the reachability of a state \emph{s} from the initialized state $s_0$ by the \emph{execution} function: \emph{$\exists$es.\ s $\in$ execution($s_0$, es)}.
+Based on the state machine above, we introduce some auxiliary functions: the function \textbf{execution(s, es)} takes a state \emph{s} and a sequence of events \emph{es}, and then returns the set of final states; the function \textbf{reachable(s)} (denoted as $\mathcal{R}(s)$) checks the reachability of a state \emph{s} from the initialized state $s_0$ by the \emph{execution} function: \emph{$\exists$es.\ s $\in$ execution($s_0$, es)}.
 
 Next, we add the concept of domains, also referred as partitions, to represent the entities that execute the state-transition function. In addition, we introduce partition scheduling as a domain \textbf{scheduler}. Therefore, the domains ($\mathcal{D}$) in $\mathcal{M}$ are the configured partitions ($\mathcal{P}$) and the scheduler ($\mathbb{S}$), $\mathcal{D}$ = $\mathcal{P}$ $\cup$ $\lbrace$$\mathbb{S}$$\rbrace$.
 
@@ -211,7 +212,7 @@ Finally, integrity of an event $e$ is defined as:
 \end{align*}
 \end{definition}
 
-$dom(\sigma, e)$ is a function from pairs $(\mathcal{S}\times \mathcal{E})$ to $\mathcal{D}$, specifying the domain executing an event $e$ on a state $\sigma$. The notion of integrity states that for any domain $d$, and a reachable state $s$ from the initial state $s_0$, if the domain executing the event $e$ in $s$ does not interfere with $d$, then for any state $s'$ that $e$ can transit to from $s$, $s$ is equivalent to $s'$ in the domain $d$. That is, if the domain executing $e$ is not able to interfere with $d$, then the execution of $e$ does not modify the information that domain $d$ observes.
+$dom(\sigma, e)$ is a function from pairs $(\mathcal{S}\times \mathcal{E})$ to $\mathcal{D}$, specifying the domain executing an event $e$ on a state $\sigma$. The notion of integrity states that for any domain $d$, and any reachable state $s$ from the initial state $s_0$, if the domain executing the event $e$ in $s$ does not interfere with $d$, then for any state $s'$ that $e$ can transit to from $s$, $s$ is equivalent to $s'$ in the domain $d$. That is, if the domain executing $e$ is not able to interfere with $d$, then the execution of $e$ does not modify the information that domain $d$ observes.
 
 \subsubsection{Security Model} We define the security model as:
 
@@ -226,12 +227,12 @@ The security model is a tuple \[\mathcal{S\_M} = \langle \mathcal{M}, \mathcal{D
 \end{enumerate}
 \end{definition}
 
-The security model is tuple composed of a state machine $\mathcal{M}$, a set of execution domains $\mathcal{D}$, a function $dom$, and the relations for interference between domains and equivalence between states. The assumptions of the model represent that: the scheduler interferes with any execution domain (1); an execution domain $d$ cannot interfere with the scheduler, unless $d$ is the scheduler itself (2); two states $s$ and $t$ are equivalent on the scheduler only if the execution domain of $s$ and $t$ is the same on the execution of any event $e$ (3); any event $e$ is defined on any reachable state (4); all the events must preserve the integrity relation (5).
+The security model is tuple composed of a state machine $\mathcal{M}$, a set of execution domains $\mathcal{D}$, a function $dom$, and the relations for interference between domains and equivalence between states. The assumptions of the model represent that: the scheduler interferes with any execution domain (1); an execution domain $d$ cannot interfere with the scheduler, unless $d$ is the scheduler itself (2); two states $s$ and $t$ are equivalent on the scheduler only if the execution domain of $s$ and $t$ is the same on the execution of any event $e$ (3); any event $e$ is defined on any reachable state (4); and all the events must preserve the integrity relation (5).
 
 This security model constructs a sequential model for event-based specifications which ensures the preservation of the integrity property for any possible execution trace on $\mathcal{M}$. In the next section, we instantiate the security model with our buddy allocation specification.
 
 \subsection{Instantiation and Security Proofs}\label{sec:securityproof}
-In this part, we construct an event specification by adding interfaces to the buddy allocation specification introduced in Section~\ref{sec:spec}. We instantiate the security model specifying the function for execution domains, and the relations of domain interference and state equivalence. We also prove that the wrapped buddy allocation events satisfy the integrity property.
+In this part, we construct an event specification by adding interfaces to the buddy allocation specification introduced in Section~\ref{sec:spec}. We instantiate the security model by specifying the function for execution domains, and the relations of domain interference and state equivalence. We also prove that the wrapped buddy allocation events satisfy the integrity property.
 
 \subsubsection{Instantiation}
 We first define the notion of state used in the memory state machine $\mathcal{M}$ as $\Sigma = \langle \mathcal{MS}, \xi, \mathcal{A} \rangle$, where $\mathcal{MS}$ is a set of memory pools, i.e., the memory state; $\xi$ is the scheduler domain used to instantiate the function $dom$ in the security model; and $\mathcal{A}$ is a function from execution domains to memory blocks identifiers, which holds the memory blocks that have been allocated to each execution domain. We use $\mathcal{A}$ to instantiate the equivalence function among domains.
@@ -283,7 +284,7 @@ d1 \interf d2 \triangleq (d1 = d2) \vee d1 = \mathbb{S}
 \end{align*}
 \end{definition}
 
-The state equivalence for an execution domain different from the scheduler, hence a partition, must consider the set of block identifiers that have been allocated to it, given by $\mathcal{A}\ \Sigma\ d$ for the domain $d$ in the state $\Sigma$. We then say that two states are equivalents in a partition $d$ if the set of a allocated blocks for $d$ is the same in both states. The scheduler must check that the projection of $\xi$ is equal in the relation, that is the scheduler did not change. the Formally:
+The state equivalence for an execution domain different from the scheduler, hence a partition, must consider the set of block identifiers that have been allocated to it, given by $\mathcal{A}\ \Sigma\ d$ for the domain $d$ in the state $\Sigma$. We then say that two states are equivalents in a partition $d$ if the set of allocated blocks for $d$ is the same in both states. The scheduler must check that the projection of $\xi$ is equal in the relation, that is the scheduler did not change. the Formally:
 
 \begin{definition} [Instantiation of $\sim$ by States and Domains]
 \begin{align*}
@@ -317,4 +318,4 @@ To prove the last assumption \emph{integrity(e)}, we prove the definition of int
 \end{align*}
 \end{lemma}
 
-In the end, we prove that the event specification based on the buddy allocation specification satisfies the integrity property and is really a security model. According to the instantiation of $\interf$, one partition domain (the \emph{scheduler} domain can interfere any partition domain) cannot influence the memory address spaces of other partition domains. The integrity of memory address spaces ensures that the allocation and deallocation algorithms are trustworthy and accurate.
+In the end, we prove that the event specification based on the buddy allocation specification satisfies the integrity property and is a security model. According to the instantiation of $\interf$, one partition domain (the \emph{scheduler} domain can interfere any partition domain) cannot influence the memory address spaces of other partition domains. The integrity of memory address spaces ensures that the allocation and deallocation algorithms are trustworthy and accurate.
